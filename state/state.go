@@ -44,7 +44,8 @@ func (m AppState) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.CategoryChoice = string(i.Name)
 
 			}
-			return m, tea.Quit
+			// m.table, cmd = m.table.Update(msg)
+			return m, tea.Quit // TODO return cmd
 		}
 	}
 
@@ -98,9 +99,8 @@ func (m AppState) View() string {
 			Background(lipgloss.Color("57")).
 			Bold(false)
 		t.SetStyles(s)
-		m.FermTable = t //?
+		m.FermTable = t
 		return m.FermTable.View()
-		// return quitTextStyle.Render(fmt.Sprintf("%s? Sounds good to me.", m.CategoryChoice))
 	}
 	if m.Quitting {
 		return quitTextStyle.Render("Buh bye.")

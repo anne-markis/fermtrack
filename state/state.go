@@ -32,6 +32,14 @@ func (m AppState) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.List.SetWidth(msg.Width)
 		return m, nil
 
+		// // TODO Use: constants
+		// switch msg := msg.(type) {
+		// case tea.KeyMsg:
+		// switch msg.Type {
+		// case tea.KeyCtrlC, tea.KeyEsc:
+		// 	fmt.Println(m.textarea.Value())
+		// 	return m, tea.Quit
+		// case tea.KeyEnter:
 	case tea.KeyMsg:
 		switch keypress := msg.String(); keypress {
 		case "q", "ctrl+c":

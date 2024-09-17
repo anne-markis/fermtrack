@@ -1,10 +1,21 @@
 package main
 
 import (
-	"github.com/anne-markis/fermtrack/cli"
+	"log"
+
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	loadEnvVars()
 
-	cli.StartCLI()
+	// TODO
+	// cli.StartCLI()
+}
+
+func loadEnvVars() {
+	err := godotenv.Load(".env")
+	if err != nil {
+		log.Fatalf("Error loading .env file: %s", err)
+	}
 }

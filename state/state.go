@@ -1,27 +1,25 @@
 package state
 
 import (
-	"fmt"
-	"io"
-	"strings"
-
+	"github.com/anne-markis/fermtrack/model"
 	"github.com/charmbracelet/bubbles/list"
+	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
 
 // TODO doesnt belong in state
 var (
-	itemStyle         = lipgloss.NewStyle().PaddingLeft(4)
-	selectedItemStyle = lipgloss.NewStyle().PaddingLeft(2).Foreground(lipgloss.Color("170"))
-	quitTextStyle     = lipgloss.NewStyle().Margin(1, 0, 2, 4)
+	quitTextStyle = lipgloss.NewStyle().Margin(1, 0, 2, 4)
 )
 
 type AppState struct {
-	List           list.Model
-	ListType       string
-	CategoryChoice string
-	Quitting       bool
+	List           list.Model // category list
+	CategoryChoice string     // current category
+
+	FermTable table.Model
+
+	Quitting bool
 }
 
 func (m AppState) Init() tea.Cmd {
@@ -41,9 +39,10 @@ func (m AppState) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 
 		case "enter":
-			i, ok := m.List.SelectedItem().(Item)
+			i, ok := m.List.SelectedItem().(model.ListItem)
 			if ok {
-				m.CategoryChoice = string(i)
+				m.CategoryChoice = string(i.Name)
+
 			}
 			return m, tea.Quit
 		}
@@ -56,37 +55,55 @@ func (m AppState) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m AppState) View() string {
 	if m.CategoryChoice != "" {
-		return quitTextStyle.Render(fmt.Sprintf("%s? Sounds good to me.", m.CategoryChoice))
+		var filename string
+		switch m.CategoryChoice {
+		case "wine":
+			filename = "./storage/wine.csv"
+		case "kraut":
+			filename = "./storage/kraut.csv"
+		case "pickes":
+			filename = "./storage/pickles.csv" // TODO doesn't load?
+		}
+
+		csvReader := CSVData{}
+		if err := csvReader.ParseCSV(filename); err != nil {
+			quitTextStyle.Render(err.Error())
+			return ""
+		}
+
+		columns := []table.Column{}
+		rows := []table.Row{}
+		for _, col := range csvReader.Headers {
+			columns = append(columns, table.Column{Title: col, Width: 20})
+		}
+		for _, row := range csvReader.Data {
+			rows = append(rows, row)
+		}
+
+		t := table.New(
+			table.WithColumns(columns),
+			table.WithRows(rows),
+			table.WithFocused(true),
+			table.WithHeight(7),
+		)
+
+		s := table.DefaultStyles()
+		s.Header = s.Header.
+			BorderStyle(lipgloss.NormalBorder()).
+			BorderForeground(lipgloss.Color("240")).
+			BorderBottom(true).
+			Bold(false)
+		s.Selected = s.Selected.
+			Foreground(lipgloss.Color("229")).
+			Background(lipgloss.Color("57")).
+			Bold(false)
+		t.SetStyles(s)
+		m.FermTable = t //?
+		return m.FermTable.View()
+		// return quitTextStyle.Render(fmt.Sprintf("%s? Sounds good to me.", m.CategoryChoice))
 	}
 	if m.Quitting {
 		return quitTextStyle.Render("Buh bye.")
 	}
 	return "\n" + m.List.View()
-}
-
-type Item string
-
-func (i Item) FilterValue() string { return "" }
-
-type ItemDelegate struct{}
-
-func (d ItemDelegate) Height() int                             { return 1 }
-func (d ItemDelegate) Spacing() int                            { return 0 }
-func (d ItemDelegate) Update(_ tea.Msg, _ *list.Model) tea.Cmd { return nil }
-func (d ItemDelegate) Render(w io.Writer, m list.Model, index int, listItem list.Item) {
-	i, ok := listItem.(Item)
-	if !ok {
-		return
-	}
-
-	str := fmt.Sprintf("%d. %s", index+1, i)
-
-	fn := itemStyle.Render
-	if index == m.Index() {
-		fn = func(s ...string) string {
-			return selectedItemStyle.Render("> " + strings.Join(s, " "))
-		}
-	}
-
-	fmt.Fprint(w, fn(str))
 }

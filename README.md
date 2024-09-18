@@ -20,12 +20,20 @@ To run, simply run main directly and build and run.
 ```
 OR
 ```
-% go build main.go
-% ./main
+% go build
+% ./fermtrack
 ```
 
 If you want to test out some functionality but don't have an openAI token or don't want to use credits, start the process with the `cheap` arg. This will return a hard coded dummy answer for all questions.
 
 ```
-% go run main.go cheap
+% ./fermtrack cheap
 ```
+
+### More docs
+
+https://platform.openai.com/docs/guides/prompt-engineering/tactic-provide-examples
+
+https://github.com/sashabaranov/go-openai
+
+https://platform.openai.com/usage

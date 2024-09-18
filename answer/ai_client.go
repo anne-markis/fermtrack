@@ -17,10 +17,6 @@ type OpenAIClient struct {
 	Client *openai.Client
 }
 
-type AnsweringClient interface {
-	AskQuestion(ctx context.Context, question string) (string, error)
-}
-
 func InitClient() (*OpenAIClient, error) {
 	if os.Getenv("CHATGPT3_KEY") == "" {
 		return nil, fmt.Errorf("no chatgpt key found in env")

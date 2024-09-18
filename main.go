@@ -2,11 +2,11 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"os"
 
 	"github.com/anne-markis/fermtrack/answer"
+	"github.com/anne-markis/fermtrack/cli"
 	"github.com/joho/godotenv"
 )
 
@@ -32,14 +32,14 @@ func main() {
 		}
 	}
 
-	answer, err := aiClient.AskQuestion(ctx, "test wine") // TODO
-	if err != nil {
-		fmt.Println("failed to get answer")
-	}
-	fmt.Println(answer)
+	// answer, err := aiClient.AskQuestion(ctx, "test wine") // TODO
+	// if err != nil {
+	// 	fmt.Println("failed to get answer")
+	// }
+	// fmt.Println(answer)
 
 	// TODO need to rethink the bubbletea aspect
-	// cli.StartCLI()
+	cli.StartCLI(ctx, aiClient)
 }
 
 func loadEnvVars() {

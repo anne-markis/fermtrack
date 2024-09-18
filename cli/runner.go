@@ -9,7 +9,7 @@ import (
 
 func StartCLI(ctx context.Context, answerClient answer.AnsweringClient) error {
 	p := tea.NewProgram(
-		NewHomePage(),
+		NewHomePage(answerClient),
 	)
 	if _, err := p.Run(); err != nil {
 		return err

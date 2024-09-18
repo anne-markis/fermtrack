@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/anne-markis/fermtrack/answer"
 	"github.com/charmbracelet/bubbles/textarea"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
@@ -15,40 +16,21 @@ type (
 )
 
 type homePage struct {
-	// answerClient answer.AnsweringClient
 	viewport       viewport.Model
-	messages       []string
+	messages       []string // TODO only allow one question at a time, waiting for answer
 	textarea       textarea.Model
+	aiAnswerer     AiModel
 	senderStyle    lipgloss.Style
 	responderStyle lipgloss.Style
 	err            error
 }
 
-func NewHomePage() homePage {
-	textArea := textarea.New()
-	textArea.Placeholder = "Ask away..."
-	textArea.Focus()
-
-	textArea.Prompt = "┃ "
-	textArea.CharLimit = 280
-
-	textArea.SetWidth(30)
-	textArea.SetHeight(5)
-
-	// Remove cursor line styling
-	textArea.FocusedStyle.CursorLine = lipgloss.NewStyle()
-
-	textArea.ShowLineNumbers = false
-
-	viewPort := viewport.New(50, 5)
-	viewPort.SetContent(`🍷🧙 Ask the wine wizard anything you like.`)
-
-	textArea.KeyMap.InsertNewline.SetEnabled(false)
-
+func NewHomePage(aiAnswerer answer.AnsweringClient) homePage {
 	return homePage{
-		textarea:       textArea,
+		textarea:       questionTextArea(),
+		viewport:       chatViewport(),
 		messages:       []string{},
-		viewport:       viewPort,
+		aiAnswerer:     NewAIModel(aiAnswerer),
 		senderStyle:    lipgloss.NewStyle().Foreground(lipgloss.Color("5")),
 		responderStyle: lipgloss.NewStyle().Foreground(lipgloss.Color("6")),
 		err:            nil,
@@ -56,7 +38,8 @@ func NewHomePage() homePage {
 }
 
 func (h homePage) Init() tea.Cmd {
-	return textarea.Blink
+	return tea.Batch(textarea.Blink, h.aiAnswerer.Init())
+	// return textarea.Blink
 }
 
 // VIEW
@@ -73,28 +56,46 @@ func (h homePage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var (
 		tiCmd tea.Cmd
 		vpCmd tea.Cmd
+		aiCmd tea.Cmd
 	)
 
 	h.textarea, tiCmd = h.textarea.Update(msg)
 	h.viewport, vpCmd = h.viewport.Update(msg)
+	// h.aiAnswerer, aiCmd = h.aiAnswerer.Update(msg) // might need to go after his handler Update
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.Type {
 		case tea.KeyCtrlC, tea.KeyEsc:
-			fmt.Println(h.textarea.Value())
 			return h, tea.Quit
 		case tea.KeyEnter:
-			h.messages = append(h.messages, h.senderStyle.Render("You: ")+h.textarea.Value())
-			// m.messages = append(m.messages, m.responderStyle.Render("THEM: whatever"))
+			userText := h.textarea.Value()
+			h.messages = append(h.messages, h.senderStyle.Render("You: ")+userText)
 			h.viewport.SetContent(strings.Join(h.messages, "\n"))
+			h.aiAnswerer.SetQuestion(userText)
 			h.textarea.Reset()
 			h.viewport.GotoBottom()
 		}
+	case qAnswer:
+		// h.messages = append(h.messages, h.responderStyle.Render("AI: ")+h.aiAnswerer.Answer())
+		h.messages = append(h.messages, h.responderStyle.Render(fmt.Sprintf("AI: %v", msg)))
+		h.viewport.SetContent(strings.Join(h.messages, "\n"))
+		h.textarea.Reset()
+		h.viewport.GotoBottom()
 	case errMsg:
 		h.err = msg
 		return h, nil
 	}
 
-	return h, tea.Batch(tiCmd, vpCmd)
+	h.aiAnswerer, aiCmd = h.aiAnswerer.Update(msg) // might need to go after his handler Update
+
+	return h, tea.Batch(tiCmd, vpCmd, aiCmd)
+}
+
+// https://charm.sh/blog/commands-in-bubbletea/
+
+func fwdError(err error) tea.Cmd {
+	return func() tea.Msg {
+		return errMsg(err)
+	}
 }

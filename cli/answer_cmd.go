@@ -14,7 +14,7 @@ type AiModel struct {
 	Err             error
 	answerClient    answer.AnsweringClient
 	currentQuestion string
-	currentAnswer   string
+	// currentAnswer   string
 	// questionAnswered bool
 	response string
 }
@@ -35,7 +35,7 @@ func (m AiModel) Update(msg tea.Msg) (AiModel, tea.Cmd) {
 			if err != nil {
 				return m, fwdError(err)
 			}
-			m.currentAnswer = answer
+			// m.currentAnswer = answer
 			return m, giveAnswer(answer)
 		}
 	}
@@ -51,13 +51,13 @@ func (m *AiModel) Init() tea.Cmd {
 	if err != nil {
 		return fwdError(err)
 	}
-	m.currentAnswer = answer // TODO why is this needed both times, why not just use qAnswer
+	// m.currentAnswer = answer // TODO why is this needed both times, why not just use qAnswer
 	return giveAnswer(answer)
 }
 
-func (m AiModel) Answer() string {
-	return m.currentAnswer
-}
+// func (m AiModel) Answer() string {
+// 	return m.currentAnswer
+// }
 
 func (m *AiModel) SetQuestion(q string) {
 	m.currentQuestion = q

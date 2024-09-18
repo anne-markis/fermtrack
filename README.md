@@ -6,6 +6,8 @@ IDK some sort of fancy CLI driven wine tool for home winemakers. I'm just riffin
 
 ## How to Run
 
+This requires go >= 1.18.
+
 You will need a chat gpt key. Create a `.env` file at the root and specify the key there.
 
 .env example
@@ -30,10 +32,12 @@ If you want to test out some functionality but don't have an openAI token or don
 % ./fermtrack cheap
 ```
 
-### More docs
+### Docs I found useful
 
 https://platform.openai.com/docs/guides/prompt-engineering/tactic-provide-examples
 
 https://github.com/sashabaranov/go-openai
 
 https://platform.openai.com/usage
+
+https://charm.sh/blog/commands-in-bubbletea/

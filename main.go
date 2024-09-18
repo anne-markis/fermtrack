@@ -31,14 +31,6 @@ func main() {
 			log.Fatalf("failed to  load open ai client: %s", err)
 		}
 	}
-
-	// answer, err := aiClient.AskQuestion(ctx, "test wine") // TODO
-	// if err != nil {
-	// 	fmt.Println("failed to get answer")
-	// }
-	// fmt.Println(answer)
-
-	// TODO need to rethink the bubbletea aspect
 	cli.StartCLI(ctx, aiClient)
 }
 

@@ -39,7 +39,6 @@ func NewHomePage(aiAnswerer answer.AnsweringClient) homePage {
 
 func (h homePage) Init() tea.Cmd {
 	return tea.Batch(textarea.Blink, h.aiAnswerer.Init())
-	// return textarea.Blink
 }
 
 // VIEW
@@ -47,7 +46,10 @@ func (h homePage) Init() tea.Cmd {
 // So just like, keep that in mind
 func (h homePage) View() string {
 	title := FermTrack_ANSIShadow()
-	return fmt.Sprintf("%s\n%s\n\n%s%s", title, h.viewport.View(), h.textarea.View(), helpView())
+	view := title + "\n" +
+		lipgloss.JoinHorizontal(lipgloss.Top, h.textarea.View(), h.viewport.View()) +
+		helpView()
+	return view
 }
 
 // UPDATE
@@ -61,7 +63,7 @@ func (h homePage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	h.textarea, tiCmd = h.textarea.Update(msg)
 	h.viewport, vpCmd = h.viewport.Update(msg)
-	// h.aiAnswerer, aiCmd = h.aiAnswerer.Update(msg) // might need to go after his handler Update
+	h.aiAnswerer, aiCmd = h.aiAnswerer.Update(msg) // might need to go after his handler Update
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
@@ -87,7 +89,7 @@ func (h homePage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return h, nil
 	}
 
-	h.aiAnswerer, aiCmd = h.aiAnswerer.Update(msg) // might need to go after his handler Update
+	// h.aiAnswerer, aiCmd = h.aiAnswerer.Update(msg) // might need to go after his handler Update
 
 	return h, tea.Batch(tiCmd, vpCmd, aiCmd)
 }

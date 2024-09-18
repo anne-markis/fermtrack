@@ -13,7 +13,7 @@ func questionTextArea() textarea.Model {
 	textArea.Prompt = "┃ "
 	textArea.CharLimit = 280
 
-	textArea.SetWidth(30)
+	textArea.SetWidth(40)
 	textArea.SetHeight(5)
 
 	// Remove cursor line styling

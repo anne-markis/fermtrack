@@ -32,7 +32,7 @@ If you want to test out some functionality but don't have an openAI token or don
 % ./fermtrack cheap
 ```
 
-### Docs I found useful
+### Links I found useful
 
 https://platform.openai.com/docs/guides/prompt-engineering/tactic-provide-examples
 

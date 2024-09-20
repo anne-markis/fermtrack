@@ -20,6 +20,7 @@ type homePage struct {
 	responseViewPort viewport.Model
 	questionTextArea textarea.Model
 	thinkingSpinner  spinner.Model
+	isThinking       bool
 	answerClient     answer.AnsweringClient
 	senderStyle      lipgloss.Style
 	responderStyle   lipgloss.Style
@@ -34,7 +35,8 @@ func NewHomePage(aiAnswerer answer.AnsweringClient) homePage {
 		answerClient:     aiAnswerer,
 		senderStyle:      lipgloss.NewStyle().Foreground(lipgloss.Color("5")),
 		responderStyle:   lipgloss.NewStyle().Foreground(lipgloss.Color("6")),
-		err:              nil,
+		err:              nil, // TODO use this
+
 	}
 }
 
@@ -43,9 +45,13 @@ func (h homePage) Init() tea.Cmd {
 }
 
 func (h homePage) View() string {
+	var spinner string
+	if h.isThinking {
+		spinner = h.thinkingSpinner.View()
+	}
 	title := FermTrack_ANSIShadow()
 	view := title + "\n" +
-		lipgloss.JoinHorizontal(lipgloss.Top, h.questionTextArea.View(), h.responseViewPort.View()) +
+		lipgloss.JoinHorizontal(lipgloss.Top, h.questionTextArea.View(), spinner, h.responseViewPort.View()) +
 		helpView()
 	return view
 }
@@ -84,7 +90,10 @@ func (h homePage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		cmds = append(cmds, setThinking(false))
 	case qIsThinking:
 		if msg {
-			h.responseViewPort.SetContent(h.responderStyle.Render(fmt.Sprintf("🍷🧙: %v", h.thinkingSpinner.View()))) // this renders once which is why the spinner looks frozen
+			h.isThinking = true
+			h.responseViewPort.SetContent(h.responderStyle.Render(""))
+		} else {
+			h.isThinking = false
 		}
 	case errMsg:
 		h.err = msg
@@ -103,7 +112,7 @@ func helpView() string {
 }
 
 func chatViewport() viewport.Model {
-	viewPort := viewport.New(100, 6)
+	viewPort := viewport.New(80, 6)
 	viewPort.SetContent(`🍷🧙 Ask the wine wizard anything you like.`)
 	return viewPort
 }

@@ -33,7 +33,7 @@ func InitClient() (*OpenAIClient, error) {
 func (o OpenAIClient) AskQuestion(ctx context.Context, question string) (string, error) {
 	question = strings.Join(strings.Fields(question), "")
 	if question == "" {
-		return "🍷🧙 Ask the wine wizard anything you like.", nil
+		return "Ask the wine wizard anything you like.", nil
 	}
 
 	resp, err := o.Client.CreateChatCompletion(

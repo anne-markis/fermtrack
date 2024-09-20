@@ -32,11 +32,15 @@ func (m AnswerModel) Update(msg tea.Msg) (AnswerModel, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.Type {
 		case tea.KeyEnter:
+			return m, setThinking(true)
+		}
+	case qIsThinking:
+		if msg {
 			answer, err := m.answerClient.AskQuestion(m.ctx, m.currentQuestion)
 			if err != nil {
 				return m, fwdError(err)
 			}
-			return m, giveAnswer(answer)
+			return m, tea.Batch(giveAnswer(answer), setThinking(false))
 		}
 	}
 	return m, nil

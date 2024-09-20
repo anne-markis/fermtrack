@@ -30,7 +30,7 @@ func NewHomePage(aiAnswerer answer.AnsweringClient) homePage {
 	return homePage{
 		questionTextArea: questionTextArea(),
 		responseViewPort: chatViewport(),
-		thinkingSpinner:  spinner.New(),
+		thinkingSpinner:  thinkingSpinner(),
 		aiAnswerer:       NewAnswerModel(aiAnswerer),
 		senderStyle:      lipgloss.NewStyle().Foreground(lipgloss.Color("5")),
 		responderStyle:   lipgloss.NewStyle().Foreground(lipgloss.Color("6")),
@@ -39,12 +39,12 @@ func NewHomePage(aiAnswerer answer.AnsweringClient) homePage {
 }
 
 func (h homePage) Init() tea.Cmd {
-	return textarea.Blink
+	return tea.Batch(textarea.Blink, h.thinkingSpinner.Tick)
 }
 
 func (h homePage) View() string {
 	title := FermTrack_ANSIShadow()
-	view := title + "\n" +
+	view := title + "\n" + //h.thinkingSpinner.View() +
 		lipgloss.JoinHorizontal(lipgloss.Top, h.questionTextArea.View(), h.responseViewPort.View()) +
 		helpView()
 	return view
@@ -52,13 +52,19 @@ func (h homePage) View() string {
 
 func (h homePage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var (
-		tiCmd tea.Cmd
-		vpCmd tea.Cmd
-		aiCmd tea.Cmd
+		tiCmd      tea.Cmd
+		vpCmd      tea.Cmd
+		aiCmd      tea.Cmd
+		spinnerCmd tea.Cmd
 	)
+
+	cmds := []tea.Cmd{}
 
 	h.questionTextArea, tiCmd = h.questionTextArea.Update(msg)
 	h.responseViewPort, vpCmd = h.responseViewPort.Update(msg)
+	h.thinkingSpinner, spinnerCmd = h.thinkingSpinner.Update(msg)
+
+	cmds = append(cmds, tiCmd, vpCmd, aiCmd, spinnerCmd)
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
@@ -78,30 +84,19 @@ func (h homePage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		h.responseViewPort.GotoBottom()
 	case qIsThinking:
 		if msg {
-			h.resetSpinner()
-		} else {
-			h.hideSpinner()
+			h.responseViewPort.SetContent(h.responderStyle.Render(fmt.Sprintf("🍷🧙: %v", h.thinkingSpinner.View())))
 		}
 	case errMsg:
 		h.err = msg
 		return h, nil
+	default:
+
 	}
 
-	h.aiAnswerer, aiCmd = h.aiAnswerer.Update(msg)
+	h.aiAnswerer, aiCmd = h.aiAnswerer.Update(msg) // this is what is holidng the UI up
+	cmds = append(cmds, aiCmd)
 
-	return h, tea.Batch(tiCmd, vpCmd, aiCmd)
-}
-
-func (h *homePage) resetSpinner() {
-	h.thinkingSpinner = spinner.New()
-	h.thinkingSpinner.Style = spinnerStyle
-	h.thinkingSpinner.Spinner = spinner.Ellipsis
-}
-
-func (h *homePage) hideSpinner() {
-	h.thinkingSpinner = spinner.New()
-	h.thinkingSpinner.Style = spinnerStyle
-	h.thinkingSpinner.Spinner = spinner.Jump
+	return h, tea.Batch(cmds...)
 }
 
 func helpView() string {
@@ -131,4 +126,11 @@ func questionTextArea() textarea.Model {
 	textArea.ShowLineNumbers = false
 	textArea.KeyMap.InsertNewline.SetEnabled(false)
 	return textArea
+}
+
+func thinkingSpinner() spinner.Model {
+	thinkingSpinner := spinner.New()
+	thinkingSpinner.Style = spinnerStyle
+	thinkingSpinner.Spinner = spinner.Meter
+	return thinkingSpinner
 }

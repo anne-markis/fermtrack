@@ -20,7 +20,7 @@ type homePage struct {
 	responseViewPort viewport.Model
 	questionTextArea textarea.Model
 	thinkingSpinner  spinner.Model
-	aiAnswerer       AnswerModel
+	answerClient     answer.AnsweringClient
 	senderStyle      lipgloss.Style
 	responderStyle   lipgloss.Style
 	err              error
@@ -31,7 +31,7 @@ func NewHomePage(aiAnswerer answer.AnsweringClient) homePage {
 		questionTextArea: questionTextArea(),
 		responseViewPort: chatViewport(),
 		thinkingSpinner:  thinkingSpinner(),
-		aiAnswerer:       NewAnswerModel(aiAnswerer),
+		answerClient:     aiAnswerer,
 		senderStyle:      lipgloss.NewStyle().Foreground(lipgloss.Color("5")),
 		responderStyle:   lipgloss.NewStyle().Foreground(lipgloss.Color("6")),
 		err:              nil,
@@ -44,7 +44,7 @@ func (h homePage) Init() tea.Cmd {
 
 func (h homePage) View() string {
 	title := FermTrack_ANSIShadow()
-	view := title + "\n" + //h.thinkingSpinner.View() +
+	view := title + "\n" +
 		lipgloss.JoinHorizontal(lipgloss.Top, h.questionTextArea.View(), h.responseViewPort.View()) +
 		helpView()
 	return view
@@ -72,29 +72,28 @@ func (h homePage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case tea.KeyCtrlC, tea.KeyEsc:
 			return h, tea.Quit
 		case tea.KeyEnter:
-			userText := h.questionTextArea.Value()
-			h.aiAnswerer.SetQuestion(userText)
+			cmds = append(cmds, askQuestion(h.answerClient, h.questionTextArea.Value()), setThinking(true))
 
 			h.questionTextArea.Reset()
 			h.responseViewPort.GotoBottom()
 		}
-	case qAnswer:
+	case someAnswer:
 		h.responseViewPort.SetContent(h.responderStyle.Render(fmt.Sprintf("🍷🧙: %v", msg)))
 		h.questionTextArea.Reset()
 		h.responseViewPort.GotoBottom()
+		cmds = append(cmds, setThinking(false))
 	case qIsThinking:
 		if msg {
-			h.responseViewPort.SetContent(h.responderStyle.Render(fmt.Sprintf("🍷🧙: %v", h.thinkingSpinner.View())))
+			h.responseViewPort.SetContent(h.responderStyle.Render(fmt.Sprintf("🍷🧙: %v", h.thinkingSpinner.View()))) // this renders once which is why the spinner looks frozen
 		}
 	case errMsg:
 		h.err = msg
 		return h, nil
 	default:
-
+		var spinnerCmd tea.Cmd
+		h.thinkingSpinner, spinnerCmd = h.thinkingSpinner.Update(msg)
+		cmds = append(cmds, spinnerCmd)
 	}
-
-	h.aiAnswerer, aiCmd = h.aiAnswerer.Update(msg) // this is what is holidng the UI up
-	cmds = append(cmds, aiCmd)
 
 	return h, tea.Batch(cmds...)
 }
@@ -104,7 +103,7 @@ func helpView() string {
 }
 
 func chatViewport() viewport.Model {
-	viewPort := viewport.New(80, 5)
+	viewPort := viewport.New(100, 6)
 	viewPort.SetContent(`🍷🧙 Ask the wine wizard anything you like.`)
 	return viewPort
 }
@@ -115,12 +114,11 @@ func questionTextArea() textarea.Model {
 	textArea.Focus()
 
 	textArea.Prompt = "┃ "
-	textArea.CharLimit = 280
+	textArea.CharLimit = 300
 
 	textArea.SetWidth(40)
-	textArea.SetHeight(5)
+	textArea.SetHeight(6)
 
-	// Remove cursor line styling
 	textArea.FocusedStyle.CursorLine = lipgloss.NewStyle()
 
 	textArea.ShowLineNumbers = false
@@ -131,6 +129,6 @@ func questionTextArea() textarea.Model {
 func thinkingSpinner() spinner.Model {
 	thinkingSpinner := spinner.New()
 	thinkingSpinner.Style = spinnerStyle
-	thinkingSpinner.Spinner = spinner.Meter
+	thinkingSpinner.Spinner = spinner.Points
 	return thinkingSpinner
 }

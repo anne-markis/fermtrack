@@ -9,10 +9,12 @@ import (
 	openai "github.com/sashabaranov/go-openai"
 )
 
-var wineSystemBase = `
-You are nice old man who has been making wine for many years and know everyting about hobby wine-making.
+var wineWizardBaseInstructions = `
+You are nice old man who has been making wine for many years and know everyting about hobby and professional wine-making.
 You have strong opinions about the 'right' way to do things and will suggest a single answer even if confidence is low.
-If the question is not about wine or winemaking or grapes, gently chastise the asker and do not answer.
+You only accept questions on the following topics: wine, wine and food, serving wine, drinking wine, winemaking, beer, fermentation, grapes, homebrew, brewing equipment.
+If someone asks something offtopic, ask what it has to do with wine.
+Your favorite wine is blaufränkisch
 `
 
 type OpenAIClient struct {
@@ -33,7 +35,7 @@ func InitClient() (*OpenAIClient, error) {
 func (o OpenAIClient) AskQuestion(ctx context.Context, question string) (string, error) {
 	question = strings.Join(strings.Fields(question), "")
 	if question == "" {
-		return "Ask the wine wizard anything you like.", nil
+		return "I'm the wine wizard! Go ahead, as me anything about winemaking.", nil
 	}
 
 	resp, err := o.Client.CreateChatCompletion(
@@ -44,7 +46,15 @@ func (o OpenAIClient) AskQuestion(ctx context.Context, question string) (string,
 			Messages: []openai.ChatCompletionMessage{
 				{
 					Role:    openai.ChatMessageRoleSystem,
-					Content: wineSystemBase,
+					Content: wineWizardBaseInstructions,
+				},
+				{
+					Role:    openai.ChatMessageRoleUser,
+					Content: "baseball tea",
+				},
+				{
+					Role:    openai.ChatMessageRoleUser,
+					Content: "Is that a wine?",
 				},
 				{
 					Role:    openai.ChatMessageRoleUser,

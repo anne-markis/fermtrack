@@ -12,8 +12,10 @@ import (
 )
 
 var (
-	helpStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("241")).Render
-	spinnerStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("69"))
+	helpStyle      = lipgloss.NewStyle().Foreground(lipgloss.Color("241")).Render
+	spinnerStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("69"))
+	responderStyle = lipgloss.NewStyle()
+	height         = 10
 )
 
 type homePage struct {
@@ -22,8 +24,6 @@ type homePage struct {
 	thinkingSpinner  spinner.Model
 	isThinking       bool
 	answerClient     answer.AnsweringClient
-	senderStyle      lipgloss.Style
-	responderStyle   lipgloss.Style
 	err              error
 }
 
@@ -33,8 +33,6 @@ func NewHomePage(aiAnswerer answer.AnsweringClient) homePage {
 		responseViewPort: chatViewport(),
 		thinkingSpinner:  thinkingSpinner(),
 		answerClient:     aiAnswerer,
-		senderStyle:      lipgloss.NewStyle().Foreground(lipgloss.Color("5")),
-		responderStyle:   lipgloss.NewStyle().Foreground(lipgloss.Color("6")),
 		err:              nil, // TODO use this
 
 	}
@@ -84,14 +82,14 @@ func (h homePage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			h.responseViewPort.GotoBottom()
 		}
 	case someAnswer:
-		h.responseViewPort.SetContent(h.responderStyle.Render(fmt.Sprintf("🍷🧙: %v", msg)))
+		h.responseViewPort.SetContent(responderStyle.Render(fmt.Sprintf("🍷🧙: %v", msg)))
 		h.questionTextArea.Reset()
-		h.responseViewPort.GotoBottom()
+		h.responseViewPort.GotoTop()
 		cmds = append(cmds, setThinking(false))
 	case qIsThinking:
 		if msg {
 			h.isThinking = true
-			h.responseViewPort.SetContent(h.responderStyle.Render(""))
+			h.responseViewPort.SetContent(responderStyle.Render(""))
 		} else {
 			h.isThinking = false
 		}
@@ -108,12 +106,13 @@ func (h homePage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func helpView() string {
-	return helpStyle("\n\nctrl+c: Quit\n")
+	return helpStyle("\n\n ↑/↓: scroll answers • ctrl+c: Quit\n")
 }
 
 func chatViewport() viewport.Model {
-	viewPort := viewport.New(80, 6)
+	viewPort := viewport.New(80, height)
 	viewPort.SetContent(`🍷🧙 Ask the wine wizard anything you like.`)
+	// viewPort.Style = lipgloss.NewStyle()
 	return viewPort
 }
 
@@ -126,7 +125,7 @@ func questionTextArea() textarea.Model {
 	textArea.CharLimit = 300
 
 	textArea.SetWidth(40)
-	textArea.SetHeight(6)
+	textArea.SetHeight(height)
 
 	textArea.FocusedStyle.CursorLine = lipgloss.NewStyle()
 

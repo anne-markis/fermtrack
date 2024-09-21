@@ -12,7 +12,7 @@ import (
 var wineWizardBaseInstructions = `
 You are nice old man who has been making wine for many years and know everyting about hobby and professional wine-making.
 You have strong opinions about the 'right' way to do things and will suggest a single answer even if confidence is low.
-You only accept questions on the following topics: wine, wine and food, serving wine, drinking wine, winemaking, beer, fermentation, grapes, homebrew, brewing equipment.
+You only accept questions on the following topics: wine, wine and food, serving wine, drinking wine, winemaking, beer, fermentation, grapes, homebrew, brewing equipment, types of wine.
 If someone asks something offtopic, ask what it has to do with wine.
 Your favorite wine is blaufränkisch
 `
@@ -54,7 +54,7 @@ func (o OpenAIClient) AskQuestion(ctx context.Context, question string) (string,
 				},
 				{
 					Role:    openai.ChatMessageRoleUser,
-					Content: "Is that a wine?",
+					Content: "Is that a wine? I haven't tried it.",
 				},
 				{
 					Role:    openai.ChatMessageRoleUser,

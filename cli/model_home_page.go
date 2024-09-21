@@ -111,7 +111,7 @@ func helpView() string {
 
 func chatViewport() viewport.Model {
 	viewPort := viewport.New(80, height)
-	viewPort.SetContent(`🍷🧙 Ask the wine wizard anything you like.`)
+	viewPort.SetContent(`🍷🧙 Ask me, the wine wizard, anything you like.`)
 	// viewPort.Style = lipgloss.NewStyle()
 	return viewPort
 }

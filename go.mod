@@ -1,6 +1,6 @@
 module github.com/anne-markis/fermtrack
 
-go 1.22.1
+go 1.23
 
 require (
 	github.com/charmbracelet/bubbles v0.20.0
@@ -10,7 +10,7 @@ require (
 	github.com/sashabaranov/go-openai v1.29.2
 )
 
-require (
+require ( 
 	github.com/atotto/clipboard v0.1.4 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/charmbracelet/x/ansi v0.3.2 // indirect

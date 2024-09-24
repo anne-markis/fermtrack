@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/anne-markis/fermtrack/answer"
 	"github.com/anne-markis/fermtrack/cli"
@@ -12,13 +13,14 @@ import (
 
 type args struct {
 	cheapmode bool
+	envFile   string
 }
 
 func main() {
 	ctx := context.Background()
 
-	loadEnvVars()
 	args := loadArgs()
+	loadEnvVars(args.envFile)
 
 	var aiClient answer.AnsweringClient
 
@@ -34,18 +36,25 @@ func main() {
 	cli.StartCLI(ctx, aiClient)
 }
 
-func loadEnvVars() {
-	err := godotenv.Load(".env")
+func loadEnvVars(envFile string) {
+	err := godotenv.Load(envFile)
 	if err != nil {
 		log.Fatalf("Error loading .env file: %s", err)
 	}
 }
 
 func loadArgs() args {
-	a := args{}
+	a := args{
+		envFile: ".env",
+	}
 	for _, arg := range os.Args {
 		if arg == "cheap" {
 			a.cheapmode = true
+			continue
+		}
+		if strings.HasPrefix(arg, "env=") {
+			vars := strings.Split(arg, "=")
+			a.envFile = vars[1]
 		}
 	}
 	return a

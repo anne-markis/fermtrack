@@ -4,9 +4,9 @@
 
 IDK some sort of fancy CLI driven wine tool for home winemakers. I'm just riffing here.
 
-## How to Run
+## How to Run locally
 
-This requires go >= 1.18.
+This requires go >= 1.22
 
 You will need a chat gpt key. Create a `.env` file at the root and specify the key there.
 

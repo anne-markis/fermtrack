@@ -41,3 +41,10 @@ https://github.com/sashabaranov/go-openai
 https://platform.openai.com/usage
 
 https://charm.sh/blog/commands-in-bubbletea/
+
+
+TODO
+add tests
+add lint
+add mockery?
+logging

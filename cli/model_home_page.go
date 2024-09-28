@@ -1,6 +1,7 @@
-package cli
+package main
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/anne-markis/fermtrack/answer"
@@ -34,8 +35,17 @@ func NewHomePage(aiAnswerer answer.AnsweringClient) homePage {
 		thinkingSpinner:  thinkingSpinner(),
 		answerClient:     aiAnswerer,
 		err:              nil, // TODO use this
-
 	}
+}
+
+func StartCLI(ctx context.Context, answerClient answer.AnsweringClient) error {
+	p := tea.NewProgram(
+		NewHomePage(answerClient),
+	)
+	if _, err := p.Run(); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (h homePage) Init() tea.Cmd {
@@ -76,7 +86,14 @@ func (h homePage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case tea.KeyCtrlC, tea.KeyEsc:
 			return h, tea.Quit
 		case tea.KeyEnter:
-			cmds = append(cmds, askQuestion(h.answerClient, h.questionTextArea.Value()), setThinking(true))
+			input := h.questionTextArea.Value()
+
+			systemCmd, _ := GetCommand(input) // TODO swallowed error
+			if systemCmd == AskWineWizard {
+				cmds = append(cmds, askQuestion(h.answerClient, input), setThinking(true))
+			} else {
+				h.responseViewPort.SetContent(responderStyle.Render(systemCmd))
+			}
 
 			h.questionTextArea.Reset()
 			h.responseViewPort.GotoBottom()
@@ -106,7 +123,7 @@ func (h homePage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func helpView() string {
-	return helpStyle("\n\n ↑/↓: scroll answers • ctrl+c: Quit\n")
+	return helpStyle("\n\n help: Get commands • ↑/↓: scroll answers • ctrl+c: Quit\n")
 }
 
 func chatViewport() viewport.Model {
@@ -139,4 +156,32 @@ func thinkingSpinner() spinner.Model {
 	thinkingSpinner.Style = spinnerStyle
 	thinkingSpinner.Spinner = spinner.Points
 	return thinkingSpinner
+}
+
+type qIsThinking bool
+
+func setThinking(isThinking bool) tea.Cmd {
+	return func() tea.Msg {
+		return qIsThinking(isThinking)
+	}
+}
+
+type errMsg error
+
+func fwdError(err error) tea.Cmd {
+	return func() tea.Msg {
+		return errMsg(err)
+	}
+}
+
+type someAnswer string
+
+func askQuestion(client answer.AnsweringClient, q string) tea.Cmd {
+	return func() tea.Msg {
+		answer, err := client.AskQuestion(context.Background(), q)
+		if err != nil {
+			return errMsg(err)
+		}
+		return someAnswer(answer)
+	}
 }

@@ -1,16 +1,25 @@
 package main
 
 import (
-	"cmp"
-	"fmt"
-	"log"
+	"context"
+	"flag"
+
 	"net/http"
 	"os"
+	"os/signal"
 	"strings"
+	"time"
 
 	"github.com/anne-markis/fermtrack/server"
 
+	"github.com/rs/zerolog/log"
+
+	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
+
+	"database/sql"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
 type args struct {
@@ -19,62 +28,63 @@ type args struct {
 }
 
 func main() {
-	// ctx := context.Background()
 
 	args := loadArgs()
 	loadEnvVars(args.envFile)
 
-	// var aiClient answer.AnsweringClient
+	// TODO put connection something else
+	db, err := sql.Open("mysql", "your_username:your_password@tcp(mysql:3306)/fermtrack")
+	if err != nil {
+		log.Error().Msg(err.Error())
+		return
+	}
+	defer db.Close()
 
-	// if args.cheapmode {
-	// 	aiClient = answer.CheapClient{}
-	// } else {
-	// 	var err error
-	// 	aiClient, err = answer.InitClient()
-	// 	if err != nil {
-	// 		log.Fatalf("failed to  load open ai client: %s", err)
-	// 	}
-	// }
+	ftServer := &server.FermtrackServer{}
 
-	ftServer := server.FermtrackServer{}
+	r := mux.NewRouter()
+	r.HandleFunc("/projects/{uuid}", ftServer.GetProjectHandler).Methods("GET", "PUT")
+	r.HandleFunc("/projects/list", ftServer.ListProjectsHandler).Methods("GET")
 
-	// start server
-	mux := http.NewServeMux()
-	mux.HandleFunc("GET /list/", ftServer.ListProjectsHandler)
-	mux.HandleFunc("POST /edit/", ftServer.EditProjectHandler)
+	// middleware
+	r.Use(loggingMiddleware)
 
-	// start up server
+	srv := &http.Server{
+		Addr: "0.0.0.0:8080",
+		// Good practice to set timeouts to avoid Slowloris attacks.
+		WriteTimeout: time.Second * 15,
+		ReadTimeout:  time.Second * 15,
+		IdleTimeout:  time.Second * 60,
+		Handler:      r,
+	}
+
+	var wait time.Duration
+	flag.DurationVar(&wait, "graceful-timeout", time.Second*15, "the duration for which the server gracefully wait for existing connections to finish - e.g. 15s or 1m")
+	flag.Parse()
+
+	// Run our server in a goroutine so that it doesn't block.
 	go func() {
-		port := cmp.Or(os.Getenv("SERVERPORT"), "9020")
-		address := "localhost:" + port
-		log.Printf("listening on %s\n", port)
-		if err := http.ListenAndServe(address, mux); err != nil && err != http.ErrServerClosed {
-			fmt.Fprintf(os.Stderr, "error listening and serving: %s\n", err)
+		if err := srv.ListenAndServe(); err != nil {
+			log.Error().Msg(err.Error())
 		}
 	}()
 
-	// // shut down gracefully
-	// var wg sync.WaitGroup
-	// wg.Add(1)
-	// go func() {
-	// 	defer wg.Done()
-	// 	<-ctx.Done()
-	// 	shutdownCtx := context.Background()
-	// 	shutdownCtx, cancel := context.WithTimeout(shutdownCtx, 10*time.Second)
-	// 	defer cancel()
-	// 	if err := http.Shutdown(shutdownCtx); err != nil {
-	// 		fmt.Fprintf(os.Stderr, "error shutting down http server: %s\n", err)
-	// 	}
-	// }()
-	// wg.Wait()
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
 
-	// cli.StartCLI(ctx, aiClient) // send server info?
+	<-c
+
+	ctx, cancel := context.WithTimeout(context.Background(), wait)
+	defer cancel()
+	srv.Shutdown(ctx)
+	log.Info().Msg("shutting down")
+	os.Exit(0)
 }
 
 func loadEnvVars(envFile string) {
 	err := godotenv.Load(envFile)
 	if err != nil {
-		log.Fatalf("Error loading .env file: %s", err)
+		log.Fatal().Msg(err.Error())
 	}
 }
 
@@ -93,4 +103,11 @@ func loadArgs() args {
 		}
 	}
 	return a
+}
+
+func loggingMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.Info().Msg(r.RequestURI)
+		next.ServeHTTP(w, r)
+	})
 }

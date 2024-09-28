@@ -9,7 +9,7 @@ const helpText = `options:
 	Or simply ask the wine wizard anything you like!
 `
 
-const AskWineWizard = "help"
+const AskWineWizard = "help" // TODO what?
 
 func GetCommand(input string) (string, error) {
 	input = strings.ReplaceAll(input, " ", "")

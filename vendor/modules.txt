@@ -57,6 +57,9 @@ github.com/mattn/go-localereader
 # github.com/mattn/go-runewidth v0.0.16
 ## explicit; go 1.9
 github.com/mattn/go-runewidth
+# github.com/mfridman/interpolate v0.0.2
+## explicit; go 1.19
+github.com/mfridman/interpolate
 # github.com/muesli/ansi v0.0.0-20230316100256-276c6243b2f6
 ## explicit; go 1.17
 github.com/muesli/ansi
@@ -67,6 +70,21 @@ github.com/muesli/cancelreader
 # github.com/muesli/termenv v0.15.2
 ## explicit; go 1.17
 github.com/muesli/termenv
+# github.com/pkg/errors v0.9.1
+## explicit
+github.com/pkg/errors
+# github.com/pressly/goose v2.7.0+incompatible
+## explicit
+github.com/pressly/goose
+# github.com/pressly/goose/v3 v3.22.1
+## explicit; go 1.21.0
+github.com/pressly/goose/v3
+github.com/pressly/goose/v3/database
+github.com/pressly/goose/v3/internal/dialect
+github.com/pressly/goose/v3/internal/dialect/dialectquery
+github.com/pressly/goose/v3/internal/gooseutil
+github.com/pressly/goose/v3/internal/sqlparser
+github.com/pressly/goose/v3/lock
 # github.com/rivo/uniseg v0.4.7
 ## explicit; go 1.18
 github.com/rivo/uniseg
@@ -80,6 +98,12 @@ github.com/rs/zerolog/log
 ## explicit; go 1.18
 github.com/sashabaranov/go-openai
 github.com/sashabaranov/go-openai/internal
+# github.com/sethvargo/go-retry v0.3.0
+## explicit; go 1.21
+github.com/sethvargo/go-retry
+# go.uber.org/multierr v1.11.0
+## explicit; go 1.19
+go.uber.org/multierr
 # golang.org/x/sync v0.8.0
 ## explicit; go 1.18
 golang.org/x/sync/errgroup

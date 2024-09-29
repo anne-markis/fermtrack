@@ -6,6 +6,8 @@ services:
       MYSQL_DATABASE: fermtrack
     ports:
       - "3310:3306" # start on 3310 locally since 3306 is usually taken by *work*
+    volumes:
+      - mysql_data:/var/lib/mysql
   fermtrack:
     build: .
     volumes:
@@ -16,3 +18,7 @@ services:
       - "8080:8080"
     depends_on:
       - mysql
+
+volumes:
+  mysql_data:
+    driver: local

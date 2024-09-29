@@ -20,6 +20,7 @@ import (
 	"database/sql"
 
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/pressly/goose"
 )
 
 type args struct {
@@ -33,17 +34,35 @@ func main() {
 	loadEnvVars(args.envFile)
 
 	// TODO put connection something else
-	db, err := sql.Open("mysql", "your_username:your_password@tcp(mysql:3306)/fermtrack")
+	db, err := sql.Open("mysql", "root:s3CrEt@tcp(mysql:3306)/fermtrack?parseTime=true")
 	if err != nil {
 		log.Error().Msg(err.Error())
 		return
 	}
 	defer db.Close()
 
+	for {
+		if err := db.Ping(); err != nil {
+			log.Info().Err(err).Msg("DB not ready, retrying")
+			time.Sleep(2 * time.Second)
+			continue
+		}
+		break
+	}
+	log.Info().Msg("db ready, connected")
+
+	if err := goose.SetDialect("mysql"); err != nil {
+		log.Error().Err(err).Msg("Failed to set dialect")
+	}
+	if err := goose.Up(db, os.Getenv("GOOSE_MIGRATION_DIR")); err != nil {
+		log.Error().Err(err).Msg("Error running migrations")
+		return
+	}
+
 	ftServer := &server.FermtrackServer{}
 
 	r := mux.NewRouter()
-	r.HandleFunc("/projects/{uuid}", ftServer.GetProjectHandler).Methods("GET", "PUT")
+	r.HandleFunc("/projects/{uuid}", ftServer.GetProjectHandler).Methods("GET", "PUT") // TODO
 	r.HandleFunc("/projects/list", ftServer.ListProjectsHandler).Methods("GET")
 
 	// middleware

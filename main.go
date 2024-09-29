@@ -10,11 +10,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/anne-markis/fermtrack/server"
+	"github.com/anne-markis/fermtrack/internal/app"
+	"github.com/anne-markis/fermtrack/internal/handlers"
+	"github.com/anne-markis/fermtrack/internal/repository"
+	"github.com/anne-markis/fermtrack/internal/router"
 
 	"github.com/rs/zerolog/log"
 
-	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 
 	"database/sql"
@@ -59,11 +61,11 @@ func main() {
 		return
 	}
 
-	ftServer := server.NewServer(db)
+	repo := repository.NewMySQLFermentationRepository(db)
+	fermService := app.NewFermentationService(repo)
+	fermHandler := handlers.NewFermentationHandler(fermService)
 
-	r := mux.NewRouter()
-	r.HandleFunc("/fermentations/{uuid}", ftServer.GetProjectHandler).Methods("GET", "PUT")
-	r.HandleFunc("/fermentations", ftServer.ListProjectsHandler).Methods("GET")
+	r := router.NewRouter(fermHandler)
 
 	// middleware
 	r.Use(loggingMiddleware)
@@ -80,7 +82,6 @@ func main() {
 	flag.DurationVar(&wait, "graceful-timeout", time.Second*15, "the duration for which the server gracefully wait for existing connections to finish - e.g. 15s or 1m")
 	flag.Parse()
 
-	// Run our server in a goroutine so that it doesn't block.
 	go func() {
 		if err := srv.ListenAndServe(); err != nil {
 			log.Error().Msg(err.Error())

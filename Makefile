@@ -10,6 +10,9 @@ start:
 stop:
 	docker-compose down
 
+test:
+	go test ./... -v
+
 logs:
 	docker-compose logs -f fermtrack
 

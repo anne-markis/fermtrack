@@ -40,7 +40,6 @@ Migrations are by goose.
 ```
 % brew install goose # or follow instructions here: https://github.com/pressly/goose
 % GOOSE_DRIVER=mysql GOOSE_MIGRATION_DIR=migrations goose create init sql
-% make migrate
 
 ```
 
@@ -58,5 +57,4 @@ https://charm.sh/blog/commands-in-bubbletea/
 TODO
 add tests
 add lint
-add mockery?
-logging
+add mockery

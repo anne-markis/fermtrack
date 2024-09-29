@@ -6,15 +6,16 @@ import (
 	"net/http"
 
 	"github.com/anne-markis/fermtrack/internal/app"
-	"github.com/anne-markis/fermtrack/internal/domain"
+	"github.com/anne-markis/fermtrack/internal/repository"
+
 	"github.com/gorilla/mux"
 )
 
 type FermentationHandler struct {
-	service *app.FermentationService
+	service app.FermentationTrackService
 }
 
-func NewFermentationHandler(service *app.FermentationService) *FermentationHandler {
+func NewFermentationHandler(service app.FermentationTrackService) *FermentationHandler {
 	return &FermentationHandler{service}
 }
 
@@ -39,7 +40,7 @@ func (h *FermentationHandler) GetFermentation(w http.ResponseWriter, r *http.Req
 }
 
 func (h *FermentationHandler) CreateFermentation(w http.ResponseWriter, r *http.Request) {
-	var fermentation domain.Fermentation
+	var fermentation repository.Fermentation
 	if err := json.NewDecoder(r.Body).Decode(&fermentation); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -52,9 +53,18 @@ func (h *FermentationHandler) CreateFermentation(w http.ResponseWriter, r *http.
 }
 
 func (h *FermentationHandler) UpdateFermentation(w http.ResponseWriter, r *http.Request) {
-	// Similar to CreateFermentation
+	var fermentation repository.Fermentation
+	if err := json.NewDecoder(r.Body).Decode(&fermentation); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	if err := h.service.UpdateFermentation(&fermentation); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	json.NewEncoder(w).Encode(fermentation)
 }
 
 func (h *FermentationHandler) DeleteFermentation(w http.ResponseWriter, r *http.Request) {
-	// Similar to GetFermentation
+	// TODO
 }

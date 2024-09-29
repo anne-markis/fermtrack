@@ -59,18 +59,17 @@ func main() {
 		return
 	}
 
-	ftServer := &server.FermtrackServer{}
+	ftServer := server.NewServer(db)
 
 	r := mux.NewRouter()
-	r.HandleFunc("/projects/{uuid}", ftServer.GetProjectHandler).Methods("GET", "PUT") // TODO
-	r.HandleFunc("/projects/list", ftServer.ListProjectsHandler).Methods("GET")
+	r.HandleFunc("/fermentations/{uuid}", ftServer.GetProjectHandler).Methods("GET", "PUT")
+	r.HandleFunc("/fermentations", ftServer.ListProjectsHandler).Methods("GET")
 
 	// middleware
 	r.Use(loggingMiddleware)
 
 	srv := &http.Server{
-		Addr: "0.0.0.0:8080",
-		// Good practice to set timeouts to avoid Slowloris attacks.
+		Addr:         "0.0.0.0:8080", // TODO
 		WriteTimeout: time.Second * 15,
 		ReadTimeout:  time.Second * 15,
 		IdleTimeout:  time.Second * 60,

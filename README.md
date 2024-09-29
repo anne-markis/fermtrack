@@ -39,7 +39,7 @@ Migrations are by goose.
 
 ```
 % brew install goose # or follow instructions here: https://github.com/pressly/goose
-% GOOSE_DRIVER=mysql GOOSE_MIGRATION_DIR=migrations goose create init sql
+% GOOSE_DRIVER=mysql GOOSE_MIGRATION_DIR=migrations goose create SOMENAME sql
 
 ```
 

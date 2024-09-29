@@ -1,0 +1,24 @@
+services:
+  mysql:
+    image: mysql:latest
+    environment:
+      MYSQL_ROOT_PASSWORD: s3CrEt # TODO shameful
+      MYSQL_DATABASE: fermtrack
+    ports:
+      - "3310:3306" # start on 3310 locally since 3306 is usually taken by *work*
+    volumes:
+      - mysql_data:/var/lib/mysql
+  fermtrack:
+    build: .
+    volumes:
+      - ./:/app
+    command: sh -c "go run main.go" # TODO different than what is in Dockerfile
+    restart: always
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mysql
+
+volumes:
+  mysql_data:
+    driver: local

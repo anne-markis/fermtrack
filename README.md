@@ -32,6 +32,17 @@ If you want to test out some functionality but don't have an openAI token or don
 % ./fermtrack cheap
 ```
 
+
+### Migrations
+
+Migrations are by goose.
+
+```
+% brew install goose # or follow instructions here: https://github.com/pressly/goose
+% GOOSE_DRIVER=mysql GOOSE_MIGRATION_DIR=migrations goose create init sql
+
+```
+
 ### Links I found useful
 
 https://platform.openai.com/docs/guides/prompt-engineering/tactic-provide-examples
@@ -41,3 +52,9 @@ https://github.com/sashabaranov/go-openai
 https://platform.openai.com/usage
 
 https://charm.sh/blog/commands-in-bubbletea/
+
+
+TODO
+add tests
+add lint
+add mockery

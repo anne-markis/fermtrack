@@ -4,3 +4,5 @@ fermtrack
 *demo.gif
 demo.yml
 .DS_Store
+cli/cli
+out

@@ -1,4 +1,4 @@
-package cli
+package main
 
 func BubblyGlass() string {
 	return `
@@ -29,15 +29,11 @@ func BubblyGlass() string {
 }
 
 func IDunno() string {
-	return `
-	¯\_(ツ)_/¯
-	`
+	return `¯\_(ツ)_/¯`
 }
 
 func Grump() string {
-	return `
-	(ಠ╭╮ಠ)
-	`
+	return `(ಠ╭╮ಠ)`
 }
 
 func FermTrack_ANSIShadow() string {

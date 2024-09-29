@@ -2,13 +2,25 @@ package main
 
 import (
 	"context"
-	"log"
-	"os"
-	"strings"
+	"flag"
 
-	"github.com/anne-markis/fermtrack/answer"
-	"github.com/anne-markis/fermtrack/cli"
+	"net/http"
+	"os"
+	"os/signal"
+	"strings"
+	"time"
+
+	"github.com/anne-markis/fermtrack/server"
+
+	"github.com/rs/zerolog/log"
+
+	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
+
+	"database/sql"
+
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/pressly/goose"
 )
 
 type args struct {
@@ -17,29 +29,81 @@ type args struct {
 }
 
 func main() {
-	ctx := context.Background()
 
 	args := loadArgs()
 	loadEnvVars(args.envFile)
 
-	var aiClient answer.AnsweringClient
-
-	if args.cheapmode {
-		aiClient = answer.CheapClient{}
-	} else {
-		var err error
-		aiClient, err = answer.InitClient()
-		if err != nil {
-			log.Fatalf("failed to  load open ai client: %s", err)
-		}
+	// TODO put connection something else
+	db, err := sql.Open("mysql", "root:s3CrEt@tcp(mysql:3306)/fermtrack?parseTime=true")
+	if err != nil {
+		log.Error().Msg(err.Error())
+		return
 	}
-	cli.StartCLI(ctx, aiClient)
+	defer db.Close()
+
+	for {
+		if err := db.Ping(); err != nil {
+			log.Info().Err(err).Msg("DB not ready, retrying")
+			time.Sleep(2 * time.Second)
+			continue
+		}
+		break
+	}
+	log.Info().Msg("db ready, connected")
+
+	if err := goose.SetDialect("mysql"); err != nil {
+		log.Error().Err(err).Msg("Failed to set dialect")
+	}
+	if err := goose.Up(db, os.Getenv("GOOSE_MIGRATION_DIR")); err != nil {
+		log.Error().Err(err).Msg("Error running migrations")
+		return
+	}
+
+	ftServer := &server.FermtrackServer{}
+
+	r := mux.NewRouter()
+	r.HandleFunc("/projects/{uuid}", ftServer.GetProjectHandler).Methods("GET", "PUT") // TODO
+	r.HandleFunc("/projects/list", ftServer.ListProjectsHandler).Methods("GET")
+
+	// middleware
+	r.Use(loggingMiddleware)
+
+	srv := &http.Server{
+		Addr: "0.0.0.0:8080",
+		// Good practice to set timeouts to avoid Slowloris attacks.
+		WriteTimeout: time.Second * 15,
+		ReadTimeout:  time.Second * 15,
+		IdleTimeout:  time.Second * 60,
+		Handler:      r,
+	}
+
+	var wait time.Duration
+	flag.DurationVar(&wait, "graceful-timeout", time.Second*15, "the duration for which the server gracefully wait for existing connections to finish - e.g. 15s or 1m")
+	flag.Parse()
+
+	// Run our server in a goroutine so that it doesn't block.
+	go func() {
+		if err := srv.ListenAndServe(); err != nil {
+			log.Error().Msg(err.Error())
+		}
+	}()
+
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+
+	<-c
+
+	ctx, cancel := context.WithTimeout(context.Background(), wait)
+	defer cancel()
+	srv.Shutdown(ctx)
+	log.Info().Msg("shutting down")
+	os.Exit(0)
 }
 
 func loadEnvVars(envFile string) {
 	err := godotenv.Load(envFile)
 	if err != nil {
-		log.Fatalf("Error loading .env file: %s", err)
+		log.Fatal().Msg(err.Error())
 	}
 }
 
@@ -58,4 +122,11 @@ func loadArgs() args {
 		}
 	}
 	return a
+}
+
+func loggingMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.Info().Msg(r.RequestURI)
+		next.ServeHTTP(w, r)
+	})
 }

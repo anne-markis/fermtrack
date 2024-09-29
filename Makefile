@@ -15,7 +15,3 @@ logs:
 
 db:
 	docker exec -it fermtrack-mysql-1 mysql -uroot -ps3CrEt
-
-# TODO used?
-migrate:
-	goose mysql $GOOSE_DBSTRING up

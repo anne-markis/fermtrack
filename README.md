@@ -12,7 +12,7 @@ You will need a chat gpt key. Create a `.env` file at the root and specify the k
 
 .env example
 ```
-CHATGPT3_KEY=your-key
+CHATGPT_KEY=your-key
 ```
 
 To run, simply run main directly and build and run.
@@ -55,6 +55,4 @@ https://charm.sh/blog/commands-in-bubbletea/
 
 
 TODO
-add tests
 add lint
-add mockery

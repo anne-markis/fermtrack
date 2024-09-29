@@ -3,18 +3,21 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 
 	"net/http"
 	"os"
 	"os/signal"
-	"strings"
 	"time"
 
-	"github.com/anne-markis/fermtrack/server"
+	"github.com/anne-markis/fermtrack/internal/app"
+	"github.com/anne-markis/fermtrack/internal/config"
+	"github.com/anne-markis/fermtrack/internal/handlers"
+	"github.com/anne-markis/fermtrack/internal/repository"
+	"github.com/anne-markis/fermtrack/internal/router"
 
 	"github.com/rs/zerolog/log"
 
-	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 
 	"database/sql"
@@ -30,11 +33,15 @@ type args struct {
 
 func main() {
 
-	args := loadArgs()
-	loadEnvVars(args.envFile)
+	cfg := config.LoadConfig()
 
-	// TODO put connection something else
-	db, err := sql.Open("mysql", "root:s3CrEt@tcp(mysql:3306)/fermtrack?parseTime=true")
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?parseTime=true",
+		cfg.Database.User,
+		cfg.Database.Password,
+		cfg.Database.Host,
+		cfg.Database.Port,
+		cfg.Database.Name)
+	db, err := sql.Open("mysql", dsn)
 	if err != nil {
 		log.Error().Msg(err.Error())
 		return
@@ -59,17 +66,17 @@ func main() {
 		return
 	}
 
-	ftServer := server.NewServer(db)
+	repo := repository.NewMySQLFermentationRepository(db)
+	fermService := app.NewFermentationService(repo)
+	fermHandler := handlers.NewFermentationHandler(fermService)
 
-	r := mux.NewRouter()
-	r.HandleFunc("/fermentations/{uuid}", ftServer.GetProjectHandler).Methods("GET", "PUT")
-	r.HandleFunc("/fermentations", ftServer.ListProjectsHandler).Methods("GET")
+	r := router.NewRouter(fermHandler)
 
 	// middleware
 	r.Use(loggingMiddleware)
 
 	srv := &http.Server{
-		Addr:         "0.0.0.0:8080", // TODO
+		Addr:         fmt.Sprintf("0.0.0.0:%s", cfg.Server.Port),
 		WriteTimeout: time.Second * 15,
 		ReadTimeout:  time.Second * 15,
 		IdleTimeout:  time.Second * 60,
@@ -80,7 +87,6 @@ func main() {
 	flag.DurationVar(&wait, "graceful-timeout", time.Second*15, "the duration for which the server gracefully wait for existing connections to finish - e.g. 15s or 1m")
 	flag.Parse()
 
-	// Run our server in a goroutine so that it doesn't block.
 	go func() {
 		if err := srv.ListenAndServe(); err != nil {
 			log.Error().Msg(err.Error())
@@ -104,23 +110,6 @@ func loadEnvVars(envFile string) {
 	if err != nil {
 		log.Fatal().Msg(err.Error())
 	}
-}
-
-func loadArgs() args {
-	a := args{
-		envFile: ".env",
-	}
-	for _, arg := range os.Args {
-		if arg == "cheap" {
-			a.cheapmode = true
-			continue
-		}
-		if strings.HasPrefix(arg, "env=") {
-			vars := strings.Split(arg, "=")
-			a.envFile = vars[1]
-		}
-	}
-	return a
 }
 
 func loggingMiddleware(next http.Handler) http.Handler {

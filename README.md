@@ -46,35 +46,34 @@ Migrations are by goose.
 ### Mermaid class diagram
 ```
 graph TD
-    %% Main HTTP Service
+    %% Bubble Tea CLI Client
+    subgraph CLI Client
+
+        B[Bubble Tea CLI]
+        B --> |User Commands| C[FermTrack HTTP Client]
+    end
+
+    %% FermTrack Service
     subgraph FermTrack Service
-        B[HTTP Server]
-        B --> |API Calls| D[MySQL DB]
-        B --> |User questions| E[AI Client]
+        C --> |HTTP Requests| D[HTTP Handlers]
+        D --> T[FermTrackService]
+        T --> |Fetches Data| E[Fermentation Database]
+        T --> |Sends Query| F[LLM Service]
+        F --> |Returns Processed Data| T
+        E --> |Returns Fermentation Data| T
+        D --> |Sends Response| B
     end
 
-    %% Bubbletea CLI Service
-    subgraph CLI Interface
-        C[User Commands, Questions]
-        C --> |CLI Commands| F[Fermtrack Client]
-        F --> |HTTP Requests| B
-    end
-
-    %% Components and Flows
-    D --> |Data Store| B
-    E --> |Fermentation Advice| B
-
-    %% Labels for clarity
-    classDef httpService fill:#f9f,stroke:#333,stroke-width:2px;
+    %% Relationships and Flows
+    classDef cli fill:#f9f,stroke:#333,stroke-width:2px;
+    classDef fermService fill:#bff,stroke:#333,stroke-width:2px;
     classDef db fill:#bbf,stroke:#333,stroke-width:2px;
-    classDef ai fill:#bfb,stroke:#333,stroke-width:2px;
-    classDef cliService fill:#ffc,stroke:#333,stroke-width:2px;
+    classDef llm fill:#bfb,stroke:#333,stroke-width:2px;
 
-    %% Style assignments
-    class A,B httpService;
-    class D db;
-    class E ai;
-    class F,C cliService;
+    class A,B cli;
+    class D fermService;
+    class E db;
+    class F llm;
 ```
 
 ### Links I found useful

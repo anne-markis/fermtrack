@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"testing"
 
 	"github.com/anne-markis/fermtrack/internal/app/mocks"
@@ -22,7 +23,7 @@ func TestGetFermentations(t *testing.T) {
 	// Define expectations
 	mockRepo.On("FindAll").Return(mockFermentations, nil)
 
-	fermentations, err := service.GetFermentations()
+	fermentations, err := service.GetFermentations(context.Background())
 
 	// Assertions
 	assert.Nil(t, err)
@@ -42,7 +43,7 @@ func TestGetFermentationByID(t *testing.T) {
 
 	mockRepo.On("FindByID", "123").Return(mockFermentation, nil)
 
-	fermentation, err := service.GetFermentationByID("123")
+	fermentation, err := service.GetFermentationByID(context.Background(), "123")
 
 	assert.Nil(t, err)
 	assert.Equal(t, "Fermentation 1", fermentation.Nickname)

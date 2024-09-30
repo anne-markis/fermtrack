@@ -15,9 +15,9 @@ type FermentationService struct {
 }
 
 type FermentationTrackService interface {
-	GetFermentations() ([]repository.Fermentation, error)
-	GetFermentationByID(uuid string) (*repository.Fermentation, error)
-	GetFermentationAdvice(question string) (string, error)
+	GetFermentations(ctx context.Context) ([]repository.Fermentation, error)
+	GetFermentationByID(ctx context.Context, uuid string) (*repository.Fermentation, error)
+	GetFermentationAdvice(ctx context.Context, question string) (string, error)
 	// CreateFermentation(f *repository.Fermentation) error
 	// UpdateFermentation(f *repository.Fermentation) error
 	// DeleteFermentation(uuid string) error
@@ -27,18 +27,18 @@ func NewFermentationService(repo repository.FermentationRepository, aiClent ai.A
 	return &FermentationService{repo: repo, aiClient: aiClent}
 }
 
-func (s *FermentationService) GetFermentations() ([]repository.Fermentation, error) {
+func (s *FermentationService) GetFermentations(ctx context.Context) ([]repository.Fermentation, error) {
 	return s.repo.FindAll()
 }
 
-func (s *FermentationService) GetFermentationByID(uuid string) (*repository.Fermentation, error) {
+func (s *FermentationService) GetFermentationByID(ctx context.Context, uuid string) (*repository.Fermentation, error) {
 	return s.repo.FindByID(uuid)
 }
 
 // TODO join AI answer
 // TODO test
 // TODO moe repo and ai into internal/app/repository and internal/app/aiclient
-func (s *FermentationService) GetFermentationAdvice(question string) (string, error) {
+func (s *FermentationService) GetFermentationAdvice(ctx context.Context, question string) (string, error) {
 	question = strings.Join(strings.Fields(question), "")
 	if question == "" {
 		return "Ask me, the wine wizard, anything you like.", nil
@@ -56,7 +56,7 @@ func (s *FermentationService) GetFermentationAdvice(question string) (string, er
 	// Grape juice turned to liquid fire,
 	// Drunkard dreams of wine.
 	// 	`, nil
-	result, err := s.aiClient.AskQuestion(context.Background(), question) // TODO passin context
+	result, err := s.aiClient.AskQuestion(ctx, question) // TODO passin context
 	if err != nil {
 		return "", err
 	}

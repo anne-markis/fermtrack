@@ -3,6 +3,8 @@
 package mocks
 
 import (
+	context "context"
+
 	repository "github.com/anne-markis/fermtrack/internal/app/repository"
 	mock "github.com/stretchr/testify/mock"
 )
@@ -20,9 +22,9 @@ func (_m *FermentationTrackService) EXPECT() *FermentationTrackService_Expecter 
 	return &FermentationTrackService_Expecter{mock: &_m.Mock}
 }
 
-// GetFermentationAdvice provides a mock function with given fields: question
-func (_m *FermentationTrackService) GetFermentationAdvice(question string) (string, error) {
-	ret := _m.Called(question)
+// GetFermentationAdvice provides a mock function with given fields: ctx, question
+func (_m *FermentationTrackService) GetFermentationAdvice(ctx context.Context, question string) (string, error) {
+	ret := _m.Called(ctx, question)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetFermentationAdvice")
@@ -30,17 +32,17 @@ func (_m *FermentationTrackService) GetFermentationAdvice(question string) (stri
 
 	var r0 string
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string) (string, error)); ok {
-		return rf(question)
+	if rf, ok := ret.Get(0).(func(context.Context, string) (string, error)); ok {
+		return rf(ctx, question)
 	}
-	if rf, ok := ret.Get(0).(func(string) string); ok {
-		r0 = rf(question)
+	if rf, ok := ret.Get(0).(func(context.Context, string) string); ok {
+		r0 = rf(ctx, question)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(question)
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, question)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -54,14 +56,15 @@ type FermentationTrackService_GetFermentationAdvice_Call struct {
 }
 
 // GetFermentationAdvice is a helper method to define mock.On call
+//   - ctx context.Context
 //   - question string
-func (_e *FermentationTrackService_Expecter) GetFermentationAdvice(question interface{}) *FermentationTrackService_GetFermentationAdvice_Call {
-	return &FermentationTrackService_GetFermentationAdvice_Call{Call: _e.mock.On("GetFermentationAdvice", question)}
+func (_e *FermentationTrackService_Expecter) GetFermentationAdvice(ctx interface{}, question interface{}) *FermentationTrackService_GetFermentationAdvice_Call {
+	return &FermentationTrackService_GetFermentationAdvice_Call{Call: _e.mock.On("GetFermentationAdvice", ctx, question)}
 }
 
-func (_c *FermentationTrackService_GetFermentationAdvice_Call) Run(run func(question string)) *FermentationTrackService_GetFermentationAdvice_Call {
+func (_c *FermentationTrackService_GetFermentationAdvice_Call) Run(run func(ctx context.Context, question string)) *FermentationTrackService_GetFermentationAdvice_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(string))
+		run(args[0].(context.Context), args[1].(string))
 	})
 	return _c
 }
@@ -71,14 +74,14 @@ func (_c *FermentationTrackService_GetFermentationAdvice_Call) Return(_a0 string
 	return _c
 }
 
-func (_c *FermentationTrackService_GetFermentationAdvice_Call) RunAndReturn(run func(string) (string, error)) *FermentationTrackService_GetFermentationAdvice_Call {
+func (_c *FermentationTrackService_GetFermentationAdvice_Call) RunAndReturn(run func(context.Context, string) (string, error)) *FermentationTrackService_GetFermentationAdvice_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
-// GetFermentationByID provides a mock function with given fields: uuid
-func (_m *FermentationTrackService) GetFermentationByID(uuid string) (*repository.Fermentation, error) {
-	ret := _m.Called(uuid)
+// GetFermentationByID provides a mock function with given fields: ctx, uuid
+func (_m *FermentationTrackService) GetFermentationByID(ctx context.Context, uuid string) (*repository.Fermentation, error) {
+	ret := _m.Called(ctx, uuid)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetFermentationByID")
@@ -86,19 +89,19 @@ func (_m *FermentationTrackService) GetFermentationByID(uuid string) (*repositor
 
 	var r0 *repository.Fermentation
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string) (*repository.Fermentation, error)); ok {
-		return rf(uuid)
+	if rf, ok := ret.Get(0).(func(context.Context, string) (*repository.Fermentation, error)); ok {
+		return rf(ctx, uuid)
 	}
-	if rf, ok := ret.Get(0).(func(string) *repository.Fermentation); ok {
-		r0 = rf(uuid)
+	if rf, ok := ret.Get(0).(func(context.Context, string) *repository.Fermentation); ok {
+		r0 = rf(ctx, uuid)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*repository.Fermentation)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(uuid)
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, uuid)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -112,14 +115,15 @@ type FermentationTrackService_GetFermentationByID_Call struct {
 }
 
 // GetFermentationByID is a helper method to define mock.On call
+//   - ctx context.Context
 //   - uuid string
-func (_e *FermentationTrackService_Expecter) GetFermentationByID(uuid interface{}) *FermentationTrackService_GetFermentationByID_Call {
-	return &FermentationTrackService_GetFermentationByID_Call{Call: _e.mock.On("GetFermentationByID", uuid)}
+func (_e *FermentationTrackService_Expecter) GetFermentationByID(ctx interface{}, uuid interface{}) *FermentationTrackService_GetFermentationByID_Call {
+	return &FermentationTrackService_GetFermentationByID_Call{Call: _e.mock.On("GetFermentationByID", ctx, uuid)}
 }
 
-func (_c *FermentationTrackService_GetFermentationByID_Call) Run(run func(uuid string)) *FermentationTrackService_GetFermentationByID_Call {
+func (_c *FermentationTrackService_GetFermentationByID_Call) Run(run func(ctx context.Context, uuid string)) *FermentationTrackService_GetFermentationByID_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(string))
+		run(args[0].(context.Context), args[1].(string))
 	})
 	return _c
 }
@@ -129,14 +133,14 @@ func (_c *FermentationTrackService_GetFermentationByID_Call) Return(_a0 *reposit
 	return _c
 }
 
-func (_c *FermentationTrackService_GetFermentationByID_Call) RunAndReturn(run func(string) (*repository.Fermentation, error)) *FermentationTrackService_GetFermentationByID_Call {
+func (_c *FermentationTrackService_GetFermentationByID_Call) RunAndReturn(run func(context.Context, string) (*repository.Fermentation, error)) *FermentationTrackService_GetFermentationByID_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
-// GetFermentations provides a mock function with given fields:
-func (_m *FermentationTrackService) GetFermentations() ([]repository.Fermentation, error) {
-	ret := _m.Called()
+// GetFermentations provides a mock function with given fields: ctx
+func (_m *FermentationTrackService) GetFermentations(ctx context.Context) ([]repository.Fermentation, error) {
+	ret := _m.Called(ctx)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetFermentations")
@@ -144,19 +148,19 @@ func (_m *FermentationTrackService) GetFermentations() ([]repository.Fermentatio
 
 	var r0 []repository.Fermentation
 	var r1 error
-	if rf, ok := ret.Get(0).(func() ([]repository.Fermentation, error)); ok {
-		return rf()
+	if rf, ok := ret.Get(0).(func(context.Context) ([]repository.Fermentation, error)); ok {
+		return rf(ctx)
 	}
-	if rf, ok := ret.Get(0).(func() []repository.Fermentation); ok {
-		r0 = rf()
+	if rf, ok := ret.Get(0).(func(context.Context) []repository.Fermentation); ok {
+		r0 = rf(ctx)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]repository.Fermentation)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func() error); ok {
-		r1 = rf()
+	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = rf(ctx)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -170,13 +174,14 @@ type FermentationTrackService_GetFermentations_Call struct {
 }
 
 // GetFermentations is a helper method to define mock.On call
-func (_e *FermentationTrackService_Expecter) GetFermentations() *FermentationTrackService_GetFermentations_Call {
-	return &FermentationTrackService_GetFermentations_Call{Call: _e.mock.On("GetFermentations")}
+//   - ctx context.Context
+func (_e *FermentationTrackService_Expecter) GetFermentations(ctx interface{}) *FermentationTrackService_GetFermentations_Call {
+	return &FermentationTrackService_GetFermentations_Call{Call: _e.mock.On("GetFermentations", ctx)}
 }
 
-func (_c *FermentationTrackService_GetFermentations_Call) Run(run func()) *FermentationTrackService_GetFermentations_Call {
+func (_c *FermentationTrackService_GetFermentations_Call) Run(run func(ctx context.Context)) *FermentationTrackService_GetFermentations_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run()
+		run(args[0].(context.Context))
 	})
 	return _c
 }
@@ -186,7 +191,7 @@ func (_c *FermentationTrackService_GetFermentations_Call) Return(_a0 []repositor
 	return _c
 }
 
-func (_c *FermentationTrackService_GetFermentations_Call) RunAndReturn(run func() ([]repository.Fermentation, error)) *FermentationTrackService_GetFermentations_Call {
+func (_c *FermentationTrackService_GetFermentations_Call) RunAndReturn(run func(context.Context) ([]repository.Fermentation, error)) *FermentationTrackService_GetFermentations_Call {
 	_c.Call.Return(run)
 	return _c
 }

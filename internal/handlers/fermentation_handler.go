@@ -19,7 +19,7 @@ func NewFermentationHandler(service app.FermentationTrackService) *FermentationH
 }
 
 func (h *FermentationHandler) GetFermentations(w http.ResponseWriter, r *http.Request) {
-	fermentations, err := h.service.GetFermentations()
+	fermentations, err := h.service.GetFermentations(r.Context())
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -30,7 +30,7 @@ func (h *FermentationHandler) GetFermentations(w http.ResponseWriter, r *http.Re
 func (h *FermentationHandler) GetFermentation(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	uuid := vars["uuid"]
-	fermentation, err := h.service.GetFermentationByID(uuid)
+	fermentation, err := h.service.GetFermentationByID(r.Context(), uuid)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
@@ -51,7 +51,7 @@ func (h *FermentationHandler) GetFermentationAdvice(w http.ResponseWriter, r *ht
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	result, err := h.service.GetFermentationAdvice(question.Question)
+	result, err := h.service.GetFermentationAdvice(r.Context(), question.Question)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return

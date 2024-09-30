@@ -88,7 +88,10 @@ func (h homePage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case tea.KeyEnter:
 			input := h.questionTextArea.Value()
 
-			systemCmd, _ := GetCommand(input) // TODO swallowed error
+			systemCmd, err := GetCommand(input)
+			if err != nil {
+				cmds = append(cmds, fwdError(err))
+			}
 			if systemCmd == AskWineWizard {
 				cmds = append(cmds, askQuestion(h.fermTracker, input), setThinking(true))
 			} else {
@@ -178,11 +181,10 @@ type someAnswer string
 
 func askQuestion(fermtrack client.Fermtracker, q string) tea.Cmd {
 	return func() tea.Msg {
-		answer, err := fermtrack.AskQuestion(context.Background(), q)
+		answer, err := fermtrack.AskQuestion(context.Background(), &client.FermentationQuestion{Question: q})
 		if err != nil {
-			// return errMsg(err)
 			return someAnswer(err.Error())
 		}
-		return someAnswer(answer)
+		return someAnswer(answer.Answer)
 	}
 }

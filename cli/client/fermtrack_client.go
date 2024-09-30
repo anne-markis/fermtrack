@@ -32,7 +32,7 @@ func NewFermentationClient(baseURL string) *FermentationClient {
 // }
 
 type Fermtracker interface {
-	AskQuestion(ctx context.Context, question string) (string, error)
+	AskQuestion(ctx context.Context, question *FermentationQuestion) (*FermentationAdvice, error)
 }
 
 type FermentationQuestion struct {
@@ -43,31 +43,28 @@ type FermentationAdvice struct {
 }
 
 // TODO the input and output is weird here
-func (fc *FermentationClient) AskQuestion(ctx context.Context, question string) (string, error) {
-	fermQuestion := FermentationQuestion{
-		Question: question,
-	}
+func (fc *FermentationClient) AskQuestion(ctx context.Context, question *FermentationQuestion) (*FermentationAdvice, error) {
 	url := fmt.Sprintf("%s/fermentations/advice", fc.baseURL)
-	body, err := json.Marshal(fermQuestion)
+	body, err := json.Marshal(question)
 	if err != nil {
-		return "", fmt.Errorf("failed to marshal fermentation: %v", err)
+		return nil, fmt.Errorf("failed to marshal fermentation: %v", err)
 	}
 
 	resp, err := fc.client.Post(url, "application/json", bytes.NewBuffer(body))
 	if err != nil {
-		return "", fmt.Errorf("failed to create fermentation: %v", err)
+		return nil, fmt.Errorf("failed to create fermentation: %v", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 	}
 
 	var answer FermentationAdvice
 
 	if err := json.NewDecoder(resp.Body).Decode(&answer); err != nil {
-		return "", fmt.Errorf("failed to decode response: %v", err)
+		return nil, fmt.Errorf("failed to decode response: %v", err)
 	}
 
-	return answer.Answer, nil
+	return &answer, nil
 }

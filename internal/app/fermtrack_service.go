@@ -35,6 +35,7 @@ func (s *FermentationService) GetFermentationByID(uuid string) (*repository.Ferm
 
 // TODO join AI answer
 // TODO test
+// TODO moe repo and ai into internal/app/repository and internal/app/aiclient
 func (s *FermentationService) GetFermentationAdvice(question string) (string, error) {
 	question = strings.Join(strings.Fields(question), "")
 	if question == "" {

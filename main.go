@@ -11,9 +11,10 @@ import (
 	"time"
 
 	"github.com/anne-markis/fermtrack/internal/app"
+	"github.com/anne-markis/fermtrack/internal/app/repository"
 	"github.com/anne-markis/fermtrack/internal/config"
 	"github.com/anne-markis/fermtrack/internal/handlers"
-	"github.com/anne-markis/fermtrack/internal/repository"
+
 	"github.com/anne-markis/fermtrack/internal/router"
 
 	"github.com/rs/zerolog/log"

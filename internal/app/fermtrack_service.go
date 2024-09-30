@@ -1,11 +1,11 @@
-//go:generate mockery --name=FermentationTrackService --dir=internal/app --output=internal/mocks --with-expecter
+//go:generate mockery --name=FermentationTrackService --dir=internal/app --output=internal/app/mocks --with-expecter
 package app
 
 import (
 	"strings"
 	"time"
 
-	"github.com/anne-markis/fermtrack/internal/repository"
+	"github.com/anne-markis/fermtrack/internal/app/repository"
 )
 
 type FermentationService struct {

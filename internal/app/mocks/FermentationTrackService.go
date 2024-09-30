@@ -3,7 +3,7 @@
 package mocks
 
 import (
-	repository "github.com/anne-markis/fermtrack/internal/repository"
+	repository "github.com/anne-markis/fermtrack/internal/app/repository"
 	mock "github.com/stretchr/testify/mock"
 )
 

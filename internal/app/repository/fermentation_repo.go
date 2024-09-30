@@ -1,4 +1,4 @@
-//go:generate mockery --name=FermentationRepository --dir=internal/repository --output=internal/mocks --with-expecter
+//go:generate mockery --name=FermentationRepository --dir=internal/app/repository --output=internal/app/mocks --with-expecter
 package repository
 
 import (

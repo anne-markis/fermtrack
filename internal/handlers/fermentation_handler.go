@@ -87,7 +87,3 @@ func (h *FermentationHandler) GetFermentationAdvice(w http.ResponseWriter, r *ht
 // 	}
 // 	json.NewEncoder(w).Encode(fermentation)
 // }
-
-// func (h *FermentationHandler) DeleteFermentation(w http.ResponseWriter, r *http.Request) {
-// 	// TODO
-// }

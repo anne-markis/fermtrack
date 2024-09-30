@@ -20,7 +20,6 @@ type FermentationTrackService interface {
 	GetFermentationAdvice(ctx context.Context, question string) (string, error)
 	// CreateFermentation(f *repository.Fermentation) error
 	// UpdateFermentation(f *repository.Fermentation) error
-	// DeleteFermentation(uuid string) error
 }
 
 func NewFermentationService(repo repository.FermentationRepository, aiClent ai.AIClient) *FermentationService {
@@ -37,26 +36,27 @@ func (s *FermentationService) GetFermentationByID(ctx context.Context, uuid stri
 
 // TODO join AI answer
 // TODO test
-// TODO moe repo and ai into internal/app/repository and internal/app/aiclient
 func (s *FermentationService) GetFermentationAdvice(ctx context.Context, question string) (string, error) {
 	question = strings.Join(strings.Fields(question), "")
 	if question == "" {
 		return "Ask me, the wine wizard, anything you like.", nil
 	}
-	// 	time.Sleep(1 * time.Second) // simulate slow AI answer
-	// 	return `My apologies, but at the moment, my thoughts seem to be a bit hazy, much like a foggy morning.
 
-	// It's as if my mind is a glass of wine, swirling with ideas, but not quite focused enough to give you a clear answer.
+	// TODO: this gets all fermentations. Should only get undeleted fermentations from loggedin use
+	// It would also make sense to only get notes relevant to the question, (filtered by type of wine?)
+	pastFerms, err := s.repo.FindAll()
+	if err != nil {
+		return "", err
+	}
+	pastNotes := make([]string, len(pastFerms))
+	for i, ferm := range pastFerms {
+		pastNotes[i] = ferm.RecipeNotes // TODO pass along
+	}
 
-	// Perhaps we could revisit this later when my mind is a bit more sober and my thoughts are clearer.
-
-	// Enjoy this poem instead:
-
-	// Fermenting mind swirls,
-	// Grape juice turned to liquid fire,
-	// Drunkard dreams of wine.
-	// 	`, nil
-	result, err := s.aiClient.AskQuestion(ctx, question) // TODO passin context
+	result, err := s.aiClient.AskQuestion(ctx, ai.QuestionConfig{
+		Question: question,
+		Notes:    pastNotes,
+	})
 	if err != nil {
 		return "", err
 	}
@@ -72,8 +72,4 @@ func (s *FermentationService) GetFermentationAdvice(ctx context.Context, questio
 
 // func (s *FermentationService) UpdateFermentation(f *repository.Fermentation) error {
 // 	return s.repo.Update(f)
-// }
-
-// func (s *FermentationService) DeleteFermentation(uuid string) error {
-// 	return s.repo.Delete(uuid)
 // }

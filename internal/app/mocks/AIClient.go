@@ -5,6 +5,8 @@ package mocks
 import (
 	context "context"
 
+	ai "github.com/anne-markis/fermtrack/internal/app/ai"
+
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -22,7 +24,7 @@ func (_m *AIClient) EXPECT() *AIClient_Expecter {
 }
 
 // AskQuestion provides a mock function with given fields: ctx, question
-func (_m *AIClient) AskQuestion(ctx context.Context, question string) (string, error) {
+func (_m *AIClient) AskQuestion(ctx context.Context, question ai.QuestionConfig) (string, error) {
 	ret := _m.Called(ctx, question)
 
 	if len(ret) == 0 {
@@ -31,16 +33,16 @@ func (_m *AIClient) AskQuestion(ctx context.Context, question string) (string, e
 
 	var r0 string
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) (string, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, ai.QuestionConfig) (string, error)); ok {
 		return rf(ctx, question)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) string); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, ai.QuestionConfig) string); ok {
 		r0 = rf(ctx, question)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, ai.QuestionConfig) error); ok {
 		r1 = rf(ctx, question)
 	} else {
 		r1 = ret.Error(1)
@@ -56,14 +58,14 @@ type AIClient_AskQuestion_Call struct {
 
 // AskQuestion is a helper method to define mock.On call
 //   - ctx context.Context
-//   - question string
+//   - question ai.QuestionConfig
 func (_e *AIClient_Expecter) AskQuestion(ctx interface{}, question interface{}) *AIClient_AskQuestion_Call {
 	return &AIClient_AskQuestion_Call{Call: _e.mock.On("AskQuestion", ctx, question)}
 }
 
-func (_c *AIClient_AskQuestion_Call) Run(run func(ctx context.Context, question string)) *AIClient_AskQuestion_Call {
+func (_c *AIClient_AskQuestion_Call) Run(run func(ctx context.Context, question ai.QuestionConfig)) *AIClient_AskQuestion_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
+		run(args[0].(context.Context), args[1].(ai.QuestionConfig))
 	})
 	return _c
 }
@@ -73,7 +75,7 @@ func (_c *AIClient_AskQuestion_Call) Return(_a0 string, _a1 error) *AIClient_Ask
 	return _c
 }
 
-func (_c *AIClient_AskQuestion_Call) RunAndReturn(run func(context.Context, string) (string, error)) *AIClient_AskQuestion_Call {
+func (_c *AIClient_AskQuestion_Call) RunAndReturn(run func(context.Context, ai.QuestionConfig) (string, error)) *AIClient_AskQuestion_Call {
 	_c.Call.Return(run)
 	return _c
 }

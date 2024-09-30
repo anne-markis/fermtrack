@@ -12,6 +12,7 @@ import (
 type Config struct {
 	Database DatabaseConfig
 	Server   ServerConfig
+	AI       AIConfig
 }
 
 // DatabaseConfig holds DB-related configurations
@@ -25,6 +26,10 @@ type DatabaseConfig struct {
 
 type ServerConfig struct {
 	Port string
+}
+
+type AIConfig struct {
+	Key string
 }
 
 func LoadConfig() *Config {
@@ -48,6 +53,9 @@ func LoadConfig() *Config {
 		},
 		Server: ServerConfig{
 			Port: getEnv("SERVER_PORT", "8080"),
+		},
+		AI: AIConfig{
+			Key: os.Getenv("CHATGPT_KEY"),
 		},
 	}
 

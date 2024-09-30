@@ -14,7 +14,18 @@ func NewMySQLFermentationRepository(db *sql.DB) *MySQLFermentationRepository {
 }
 
 func (r *MySQLFermentationRepository) FindAll() ([]Fermentation, error) {
-	rows, err := r.db.Query("SELECT id, uuid, nickname, start_at, bottled_at, recipe_notes, tasting_notes, deleted_at FROM fermentations")
+	rows, err := r.db.Query(`
+	SELECT
+		id
+		, uuid
+		, nickname
+		, start_at
+		, bottled_at
+		, recipe_notes
+		, tasting_notes
+	FROM fermentations
+		WHERE deleted_at IS NULL
+	`)
 	if err != nil {
 		return nil, err
 	}
@@ -23,7 +34,7 @@ func (r *MySQLFermentationRepository) FindAll() ([]Fermentation, error) {
 	var fermentations []Fermentation
 	for rows.Next() {
 		var fermentation Fermentation
-		if err := rows.Scan(&fermentation.ID, &fermentation.UUID, &fermentation.Nickname, &fermentation.StartAt, &fermentation.BottledAt, &fermentation.RecipeNotes, &fermentation.TastingNotes, &fermentation.DeletedAt); err != nil {
+		if err := rows.Scan(&fermentation.ID, &fermentation.UUID, &fermentation.Nickname, &fermentation.StartAt, &fermentation.BottledAt, &fermentation.RecipeNotes, &fermentation.TastingNotes); err != nil {
 			return nil, err
 		}
 		fermentations = append(fermentations, fermentation)

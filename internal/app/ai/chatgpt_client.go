@@ -1,4 +1,3 @@
-//go:generate mockery --name=AIClient --dir=internal/app/ai --output=internal/app/mocks --with-expecter
 package ai
 
 import (
@@ -7,20 +6,29 @@ import (
 	"os"
 	"strings"
 
+	"github.com/rs/zerolog/log"
+
 	openai "github.com/sashabaranov/go-openai"
 )
 
+const noteSeparator = "[SEP]"
+
 var wineWizardBaseInstructions = `
-You are nice old man who has been making wine for many years and know everyting about hobby and professional wine-making.
+You are an expert at wine-making at both the hobby level and professional level.
 You have strong opinions about the 'right' way to do things and will suggest a single answer even if confidence is low.
-You only accept questions on the following topics: wine, wine and food, serving wine, drinking wine, winemaking, beer, fermentation, grapes, homebrew, brewing equipment, types of wine.
-If someone asks something offtopic, ask what it has to do with wine.
-Your favorite wine is blaufränkisch
+Shorter answers are better than thorough answers.
+Your primary object is to help a user proceed in their wine projects (or fermentation project).
+Your favorite wine is blaufränkisch.
 `
 
-type AIClient interface {
-	AskQuestion(ctx context.Context, question string) (string, error)
-}
+var wineWizardInstructionsForNotes = fmt.Sprintf(`
+Here are the following notes this user has created for past winemaking projects.
+See if there is anything useful to help answer the user's question.
+The advice should be contextual to the question.
+Each past project notes are separated by %s.
+
+Here are the notes: %s
+`, noteSeparator)
 
 type OpenAIClient struct {
 	Client *openai.Client
@@ -37,33 +45,45 @@ func InitClient() (AIClient, error) {
 	return &c, nil
 }
 
-// TODO create interface, but make it better... everything can't have this same signature
-func (o *OpenAIClient) AskQuestion(ctx context.Context, question string) (string, error) {
+func (o *OpenAIClient) AskQuestion(ctx context.Context, questionCfg QuestionConfig) (string, error) {
+	question := questionCfg.Question
 	question = strings.Join(strings.Fields(question), "")
 	if question == "" {
 		return "I'm the wine wizard! Go ahead, as me anything about winemaking.", nil
 	}
+
+	messages := []openai.ChatCompletionMessage{
+		{
+			Role:    openai.ChatMessageRoleSystem,
+			Content: wineWizardBaseInstructions,
+		},
+	}
+
+	if len(questionCfg.Notes) > 0 {
+		messages = append(messages, openai.ChatCompletionMessage{
+			Role:    openai.ChatMessageRoleAssistant,
+			Content: fmt.Sprintf(wineWizardInstructionsForNotes, strings.Join(questionCfg.Notes, " [SEP] ")),
+		})
+	}
+
+	messages = append(messages, openai.ChatCompletionMessage{
+		Role:    openai.ChatMessageRoleUser,
+		Content: question,
+	})
+
+	log.Info().Any("instructions", len(messages)).Msg("sending instructions")
 
 	resp, err := o.Client.CreateChatCompletion(
 		ctx,
 		openai.ChatCompletionRequest{
 			Model:     openai.GPT4oMini,
 			MaxTokens: 500,
-			Messages: []openai.ChatCompletionMessage{
-				{
-					Role:    openai.ChatMessageRoleSystem,
-					Content: wineWizardBaseInstructions,
-				},
-				{
-					Role:    openai.ChatMessageRoleUser,
-					Content: question,
-				},
-			},
+			Messages:  messages,
 		},
 	)
 
 	if err != nil {
-		fmt.Printf("ChatCompletion error: %v\n", err)
+		log.Error().Err(err).Msg("ChatCompletion error")
 		return "", err
 	}
 

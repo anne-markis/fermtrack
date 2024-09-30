@@ -6,14 +6,12 @@ import (
 	"os"
 	"strings"
 
-	"github.com/anne-markis/fermtrack/answer"
-
+	"github.com/anne-markis/fermtrack/cli/client"
 	"github.com/joho/godotenv"
 )
 
 type args struct {
-	cheapmode bool
-	envFile   string
+	envFile string
 }
 
 func main() {
@@ -22,19 +20,9 @@ func main() {
 	args := loadArgs()
 	loadEnvVars(args.envFile)
 
-	var aiClient answer.AnsweringClient
+	fermTracker := client.NewFermentationClient("http://0.0.0.0:8080") // TODO
 
-	if args.cheapmode {
-		aiClient = answer.CheapClient{}
-	} else {
-		var err error
-		aiClient, err = answer.InitClient()
-		if err != nil {
-			log.Fatalf("failed to  load open ai client: %s", err)
-		}
-	}
-
-	StartCLI(ctx, aiClient)
+	StartCLI(ctx, fermTracker)
 }
 
 func loadEnvVars(envFile string) {
@@ -49,10 +37,6 @@ func loadArgs() args {
 		envFile: "../.env",
 	}
 	for _, arg := range os.Args {
-		if arg == "cheap" {
-			a.cheapmode = true
-			continue
-		}
 		if strings.HasPrefix(arg, "env=") {
 			vars := strings.Split(arg, "=")
 			a.envFile = vars[1]

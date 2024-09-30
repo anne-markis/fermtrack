@@ -20,94 +20,58 @@ func (_m *FermentationTrackService) EXPECT() *FermentationTrackService_Expecter 
 	return &FermentationTrackService_Expecter{mock: &_m.Mock}
 }
 
-// CreateFermentation provides a mock function with given fields: f
-func (_m *FermentationTrackService) CreateFermentation(f *repository.Fermentation) error {
-	ret := _m.Called(f)
+// GetFermentationAdvice provides a mock function with given fields: question
+func (_m *FermentationTrackService) GetFermentationAdvice(question string) (string, error) {
+	ret := _m.Called(question)
 
 	if len(ret) == 0 {
-		panic("no return value specified for CreateFermentation")
+		panic("no return value specified for GetFermentationAdvice")
 	}
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(*repository.Fermentation) error); ok {
-		r0 = rf(f)
+	var r0 string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) (string, error)); ok {
+		return rf(question)
+	}
+	if rf, ok := ret.Get(0).(func(string) string); ok {
+		r0 = rf(question)
 	} else {
-		r0 = ret.Error(0)
+		r0 = ret.Get(0).(string)
 	}
 
-	return r0
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(question)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
-// FermentationTrackService_CreateFermentation_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateFermentation'
-type FermentationTrackService_CreateFermentation_Call struct {
+// FermentationTrackService_GetFermentationAdvice_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetFermentationAdvice'
+type FermentationTrackService_GetFermentationAdvice_Call struct {
 	*mock.Call
 }
 
-// CreateFermentation is a helper method to define mock.On call
-//   - f *repository.Fermentation
-func (_e *FermentationTrackService_Expecter) CreateFermentation(f interface{}) *FermentationTrackService_CreateFermentation_Call {
-	return &FermentationTrackService_CreateFermentation_Call{Call: _e.mock.On("CreateFermentation", f)}
+// GetFermentationAdvice is a helper method to define mock.On call
+//   - question string
+func (_e *FermentationTrackService_Expecter) GetFermentationAdvice(question interface{}) *FermentationTrackService_GetFermentationAdvice_Call {
+	return &FermentationTrackService_GetFermentationAdvice_Call{Call: _e.mock.On("GetFermentationAdvice", question)}
 }
 
-func (_c *FermentationTrackService_CreateFermentation_Call) Run(run func(f *repository.Fermentation)) *FermentationTrackService_CreateFermentation_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(*repository.Fermentation))
-	})
-	return _c
-}
-
-func (_c *FermentationTrackService_CreateFermentation_Call) Return(_a0 error) *FermentationTrackService_CreateFermentation_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *FermentationTrackService_CreateFermentation_Call) RunAndReturn(run func(*repository.Fermentation) error) *FermentationTrackService_CreateFermentation_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// DeleteFermentation provides a mock function with given fields: uuid
-func (_m *FermentationTrackService) DeleteFermentation(uuid string) error {
-	ret := _m.Called(uuid)
-
-	if len(ret) == 0 {
-		panic("no return value specified for DeleteFermentation")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(string) error); ok {
-		r0 = rf(uuid)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// FermentationTrackService_DeleteFermentation_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteFermentation'
-type FermentationTrackService_DeleteFermentation_Call struct {
-	*mock.Call
-}
-
-// DeleteFermentation is a helper method to define mock.On call
-//   - uuid string
-func (_e *FermentationTrackService_Expecter) DeleteFermentation(uuid interface{}) *FermentationTrackService_DeleteFermentation_Call {
-	return &FermentationTrackService_DeleteFermentation_Call{Call: _e.mock.On("DeleteFermentation", uuid)}
-}
-
-func (_c *FermentationTrackService_DeleteFermentation_Call) Run(run func(uuid string)) *FermentationTrackService_DeleteFermentation_Call {
+func (_c *FermentationTrackService_GetFermentationAdvice_Call) Run(run func(question string)) *FermentationTrackService_GetFermentationAdvice_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(string))
 	})
 	return _c
 }
 
-func (_c *FermentationTrackService_DeleteFermentation_Call) Return(_a0 error) *FermentationTrackService_DeleteFermentation_Call {
-	_c.Call.Return(_a0)
+func (_c *FermentationTrackService_GetFermentationAdvice_Call) Return(_a0 string, _a1 error) *FermentationTrackService_GetFermentationAdvice_Call {
+	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *FermentationTrackService_DeleteFermentation_Call) RunAndReturn(run func(string) error) *FermentationTrackService_DeleteFermentation_Call {
+func (_c *FermentationTrackService_GetFermentationAdvice_Call) RunAndReturn(run func(string) (string, error)) *FermentationTrackService_GetFermentationAdvice_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -223,52 +187,6 @@ func (_c *FermentationTrackService_GetFermentations_Call) Return(_a0 []repositor
 }
 
 func (_c *FermentationTrackService_GetFermentations_Call) RunAndReturn(run func() ([]repository.Fermentation, error)) *FermentationTrackService_GetFermentations_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// UpdateFermentation provides a mock function with given fields: f
-func (_m *FermentationTrackService) UpdateFermentation(f *repository.Fermentation) error {
-	ret := _m.Called(f)
-
-	if len(ret) == 0 {
-		panic("no return value specified for UpdateFermentation")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(*repository.Fermentation) error); ok {
-		r0 = rf(f)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// FermentationTrackService_UpdateFermentation_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateFermentation'
-type FermentationTrackService_UpdateFermentation_Call struct {
-	*mock.Call
-}
-
-// UpdateFermentation is a helper method to define mock.On call
-//   - f *repository.Fermentation
-func (_e *FermentationTrackService_Expecter) UpdateFermentation(f interface{}) *FermentationTrackService_UpdateFermentation_Call {
-	return &FermentationTrackService_UpdateFermentation_Call{Call: _e.mock.On("UpdateFermentation", f)}
-}
-
-func (_c *FermentationTrackService_UpdateFermentation_Call) Run(run func(f *repository.Fermentation)) *FermentationTrackService_UpdateFermentation_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(*repository.Fermentation))
-	})
-	return _c
-}
-
-func (_c *FermentationTrackService_UpdateFermentation_Call) Return(_a0 error) *FermentationTrackService_UpdateFermentation_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *FermentationTrackService_UpdateFermentation_Call) RunAndReturn(run func(*repository.Fermentation) error) *FermentationTrackService_UpdateFermentation_Call {
 	_c.Call.Return(run)
 	return _c
 }

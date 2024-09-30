@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"github.com/anne-markis/fermtrack/internal/app"
-	"github.com/anne-markis/fermtrack/internal/repository"
 
 	"github.com/gorilla/mux"
 )
@@ -39,32 +38,56 @@ func (h *FermentationHandler) GetFermentation(w http.ResponseWriter, r *http.Req
 	json.NewEncoder(w).Encode(fermentation)
 }
 
-func (h *FermentationHandler) CreateFermentation(w http.ResponseWriter, r *http.Request) {
-	var fermentation repository.Fermentation
-	if err := json.NewDecoder(r.Body).Decode(&fermentation); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-	if err := h.service.CreateFermentation(&fermentation); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-	w.WriteHeader(http.StatusCreated)
+type FermentationQuestion struct {
+	Question string `json:"question"`
+}
+type FermentationAdvice struct {
+	Answer string `json:"answer"`
 }
 
-func (h *FermentationHandler) UpdateFermentation(w http.ResponseWriter, r *http.Request) {
-	var fermentation repository.Fermentation
-	if err := json.NewDecoder(r.Body).Decode(&fermentation); err != nil {
+func (h *FermentationHandler) GetFermentationAdvice(w http.ResponseWriter, r *http.Request) {
+	var question FermentationQuestion
+	if err := json.NewDecoder(r.Body).Decode(&question); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	if err := h.service.UpdateFermentation(&fermentation); err != nil {
+	result, err := h.service.GetFermentationAdvice(question.Question)
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	json.NewEncoder(w).Encode(fermentation)
+	answer := FermentationAdvice{
+		Answer: result,
+	}
+	json.NewEncoder(w).Encode(answer)
 }
 
-func (h *FermentationHandler) DeleteFermentation(w http.ResponseWriter, r *http.Request) {
-	// TODO
-}
+// func (h *FermentationHandler) CreateFermentation(w http.ResponseWriter, r *http.Request) {
+// 	var fermentation repository.Fermentation
+// 	if err := json.NewDecoder(r.Body).Decode(&fermentation); err != nil {
+// 		http.Error(w, err.Error(), http.StatusBadRequest)
+// 		return
+// 	}
+// 	if err := h.service.CreateFermentation(&fermentation); err != nil {
+// 		http.Error(w, err.Error(), http.StatusBadRequest)
+// 		return
+// 	}
+// 	w.WriteHeader(http.StatusCreated)
+// }
+
+// func (h *FermentationHandler) UpdateFermentation(w http.ResponseWriter, r *http.Request) {
+// 	var fermentation repository.Fermentation
+// 	if err := json.NewDecoder(r.Body).Decode(&fermentation); err != nil {
+// 		http.Error(w, err.Error(), http.StatusBadRequest)
+// 		return
+// 	}
+// 	if err := h.service.UpdateFermentation(&fermentation); err != nil {
+// 		http.Error(w, err.Error(), http.StatusBadRequest)
+// 		return
+// 	}
+// 	json.NewEncoder(w).Encode(fermentation)
+// }
+
+// func (h *FermentationHandler) DeleteFermentation(w http.ResponseWriter, r *http.Request) {
+// 	// TODO
+// }

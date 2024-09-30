@@ -3,14 +3,14 @@ package repository
 import "time"
 
 type Fermentation struct {
-	ID           int
-	UUID         string
-	Nickname     string
-	StartAt      time.Time
-	BottledAt    *time.Time
-	RecipeNotes  string
-	TastingNotes *string
-	DeletedAt    *time.Time
+	ID           int        `json:"id"`
+	UUID         string     `json:"uuid"`
+	Nickname     string     `json:"nickname"`
+	StartAt      time.Time  `json:"start_at"`
+	BottledAt    *time.Time `json:"bottled_at"`
+	RecipeNotes  string     `json:"recipe_notes"`
+	TastingNotes *string    `json:"tasting_notes"`
+	DeletedAt    *time.Time `json:"deleted_at"`
 }
 
 type FermentationRepository interface {

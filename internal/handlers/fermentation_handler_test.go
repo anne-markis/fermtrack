@@ -7,8 +7,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/anne-markis/fermtrack/internal/mocks"
-	"github.com/anne-markis/fermtrack/internal/repository"
+	"github.com/anne-markis/fermtrack/internal/app/mocks"
+	"github.com/anne-markis/fermtrack/internal/app/repository"
+
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 )

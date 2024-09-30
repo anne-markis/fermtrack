@@ -11,9 +11,11 @@ import (
 	"time"
 
 	"github.com/anne-markis/fermtrack/internal/app"
+	"github.com/anne-markis/fermtrack/internal/app/ai"
+	"github.com/anne-markis/fermtrack/internal/app/repository"
 	"github.com/anne-markis/fermtrack/internal/config"
 	"github.com/anne-markis/fermtrack/internal/handlers"
-	"github.com/anne-markis/fermtrack/internal/repository"
+
 	"github.com/anne-markis/fermtrack/internal/router"
 
 	"github.com/rs/zerolog/log"
@@ -25,11 +27,6 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/pressly/goose"
 )
-
-type args struct {
-	cheapmode bool
-	envFile   string
-}
 
 func main() {
 
@@ -67,7 +64,11 @@ func main() {
 	}
 
 	repo := repository.NewMySQLFermentationRepository(db)
-	fermService := app.NewFermentationService(repo)
+	aiClient, err := ai.InitClient()
+	if err != nil {
+		log.Error().Err(err).Msg("cannot connect to open ai")
+	}
+	fermService := app.NewFermentationService(repo, aiClient)
 	fermHandler := handlers.NewFermentationHandler(fermService)
 
 	r := router.NewRouter(fermHandler)

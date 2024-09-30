@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/anne-markis/fermtrack/answer"
+	"github.com/anne-markis/fermtrack/cli/client"
 	"github.com/charmbracelet/bubbles/spinner"
 	"github.com/charmbracelet/bubbles/textarea"
 	"github.com/charmbracelet/bubbles/viewport"
@@ -24,23 +24,23 @@ type homePage struct {
 	questionTextArea textarea.Model
 	thinkingSpinner  spinner.Model
 	isThinking       bool
-	answerClient     answer.AnsweringClient
+	fermTracker      client.Fermtracker
 	err              error
 }
 
-func NewHomePage(aiAnswerer answer.AnsweringClient) homePage {
+func NewHomePage(fermTracker client.Fermtracker) homePage {
 	return homePage{
 		questionTextArea: questionTextArea(),
 		responseViewPort: chatViewport(),
 		thinkingSpinner:  thinkingSpinner(),
-		answerClient:     aiAnswerer,
+		fermTracker:      fermTracker,
 		err:              nil, // TODO use this
 	}
 }
 
-func StartCLI(ctx context.Context, answerClient answer.AnsweringClient) error {
+func StartCLI(ctx context.Context, fermTracker client.Fermtracker) error {
 	p := tea.NewProgram(
-		NewHomePage(answerClient),
+		NewHomePage(fermTracker),
 	)
 	if _, err := p.Run(); err != nil {
 		return err
@@ -88,9 +88,12 @@ func (h homePage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case tea.KeyEnter:
 			input := h.questionTextArea.Value()
 
-			systemCmd, _ := GetCommand(input) // TODO swallowed error
+			systemCmd, err := GetCommand(input)
+			if err != nil {
+				cmds = append(cmds, fwdError(err))
+			}
 			if systemCmd == AskWineWizard {
-				cmds = append(cmds, askQuestion(h.answerClient, input), setThinking(true))
+				cmds = append(cmds, askQuestion(h.fermTracker, input), setThinking(true))
 			} else {
 				h.responseViewPort.SetContent(responderStyle.Render(systemCmd))
 			}
@@ -176,12 +179,12 @@ func fwdError(err error) tea.Cmd {
 
 type someAnswer string
 
-func askQuestion(client answer.AnsweringClient, q string) tea.Cmd {
+func askQuestion(fermtrack client.Fermtracker, q string) tea.Cmd {
 	return func() tea.Msg {
-		answer, err := client.AskQuestion(context.Background(), q)
+		answer, err := fermtrack.AskQuestion(context.Background(), &client.FermentationQuestion{Question: q})
 		if err != nil {
-			return errMsg(err)
+			return someAnswer(err.Error())
 		}
-		return someAnswer(answer)
+		return someAnswer(answer.Answer)
 	}
 }

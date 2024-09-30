@@ -43,6 +43,39 @@ Migrations are by goose.
 
 ```
 
+### Mermaid class diagram
+```
+graph TD
+    %% Bubble Tea CLI Client
+    subgraph CLI Client
+
+        B[Bubble Tea CLI]
+        B --> |User Commands| C[FermTrack HTTP Client]
+    end
+
+    %% FermTrack Service
+    subgraph FermTrack Service
+        C --> |HTTP Requests| D[HTTP Handlers]
+        D --> T[FermTrackService]
+        T --> |Fetches Data| E[Fermentation Database]
+        T --> |Sends Query| F[LLM Service]
+        F --> |Returns Processed Data| T
+        E --> |Returns Fermentation Data| T
+        D --> |Sends Response| B
+    end
+
+    %% Relationships and Flows
+    classDef cli fill:#f9f,stroke:#333,stroke-width:2px;
+    classDef fermService fill:#bff,stroke:#333,stroke-width:2px;
+    classDef db fill:#bbf,stroke:#333,stroke-width:2px;
+    classDef llm fill:#bfb,stroke:#333,stroke-width:2px;
+
+    class A,B cli;
+    class D fermService;
+    class E db;
+    class F llm;
+```
+
 ### Links I found useful
 
 https://platform.openai.com/docs/guides/prompt-engineering/tactic-provide-examples

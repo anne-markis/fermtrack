@@ -1,4 +1,5 @@
-package answer
+//go:generate mockery --name=AIClient --dir=internal/app/ai --output=internal/app/mocks --with-expecter
+package ai
 
 import (
 	"context"
@@ -17,11 +18,15 @@ If someone asks something offtopic, ask what it has to do with wine.
 Your favorite wine is blaufränkisch
 `
 
+type AIClient interface {
+	AskQuestion(ctx context.Context, question string) (string, error)
+}
+
 type OpenAIClient struct {
 	Client *openai.Client
 }
 
-func InitClient() (*OpenAIClient, error) {
+func InitClient() (AIClient, error) {
 	if os.Getenv("CHATGPT_KEY") == "" {
 		return nil, fmt.Errorf("no chatgpt key found in env")
 	}
@@ -32,7 +37,8 @@ func InitClient() (*OpenAIClient, error) {
 	return &c, nil
 }
 
-func (o OpenAIClient) AskQuestion(ctx context.Context, question string) (string, error) {
+// TODO create interface, but make it better... everything can't have this same signature
+func (o *OpenAIClient) AskQuestion(ctx context.Context, question string) (string, error) {
 	question = strings.Join(strings.Fields(question), "")
 	if question == "" {
 		return "I'm the wine wizard! Go ahead, as me anything about winemaking.", nil
@@ -47,14 +53,6 @@ func (o OpenAIClient) AskQuestion(ctx context.Context, question string) (string,
 				{
 					Role:    openai.ChatMessageRoleSystem,
 					Content: wineWizardBaseInstructions,
-				},
-				{
-					Role:    openai.ChatMessageRoleUser,
-					Content: "baseball tea",
-				},
-				{
-					Role:    openai.ChatMessageRoleUser,
-					Content: "Is that a wine? I haven't tried it.",
 				},
 				{
 					Role:    openai.ChatMessageRoleUser,

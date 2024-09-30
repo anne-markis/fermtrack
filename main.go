@@ -63,11 +63,13 @@ func main() {
 		return
 	}
 
-	repo := repository.NewMySQLFermentationRepository(db)
 	aiClient, err := ai.InitClient()
 	if err != nil {
-		log.Error().Err(err).Msg("cannot connect to open ai")
+		log.Error().Err(err).Msg("cannot connect to open ai, using dummy client")
+		// aiClient =
 	}
+
+	repo := repository.NewMySQLFermentationRepository(db)
 	fermService := app.NewFermentationService(repo, aiClient)
 	fermHandler := handlers.NewFermentationHandler(fermService)
 

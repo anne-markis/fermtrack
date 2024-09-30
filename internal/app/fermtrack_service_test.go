@@ -10,8 +10,9 @@ import (
 )
 
 func TestGetFermentations(t *testing.T) {
+	mockAi := new(mocks.AIClient)
 	mockRepo := new(mocks.FermentationRepository)
-	service := NewFermentationService(mockRepo)
+	service := NewFermentationService(mockRepo, mockAi)
 
 	mockFermentations := []repository.Fermentation{
 		{UUID: "123", Nickname: "Fermentation 1"},
@@ -33,8 +34,9 @@ func TestGetFermentations(t *testing.T) {
 }
 
 func TestGetFermentationByID(t *testing.T) {
+	mockAi := new(mocks.AIClient)
 	mockRepo := new(mocks.FermentationRepository)
-	service := NewFermentationService(mockRepo)
+	service := NewFermentationService(mockRepo, mockAi)
 
 	mockFermentation := &repository.Fermentation{UUID: "123", Nickname: "Fermentation 1"}
 

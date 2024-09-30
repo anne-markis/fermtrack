@@ -2,14 +2,16 @@
 package app
 
 import (
+	"context"
 	"strings"
-	"time"
 
+	"github.com/anne-markis/fermtrack/internal/app/ai"
 	"github.com/anne-markis/fermtrack/internal/app/repository"
 )
 
 type FermentationService struct {
-	repo repository.FermentationRepository
+	repo     repository.FermentationRepository
+	aiClient ai.AIClient
 }
 
 type FermentationTrackService interface {
@@ -21,8 +23,8 @@ type FermentationTrackService interface {
 	// DeleteFermentation(uuid string) error
 }
 
-func NewFermentationService(repo repository.FermentationRepository) *FermentationService {
-	return &FermentationService{repo}
+func NewFermentationService(repo repository.FermentationRepository, aiClent ai.AIClient) *FermentationService {
+	return &FermentationService{repo: repo, aiClient: aiClent}
 }
 
 func (s *FermentationService) GetFermentations() ([]repository.Fermentation, error) {
@@ -41,19 +43,24 @@ func (s *FermentationService) GetFermentationAdvice(question string) (string, er
 	if question == "" {
 		return "Ask me, the wine wizard, anything you like.", nil
 	}
-	time.Sleep(1 * time.Second) // simulate slow AI answer
-	return `My apologies, but at the moment, my thoughts seem to be a bit hazy, much like a foggy morning.
+	// 	time.Sleep(1 * time.Second) // simulate slow AI answer
+	// 	return `My apologies, but at the moment, my thoughts seem to be a bit hazy, much like a foggy morning.
 
-It's as if my mind is a glass of wine, swirling with ideas, but not quite focused enough to give you a clear answer.
+	// It's as if my mind is a glass of wine, swirling with ideas, but not quite focused enough to give you a clear answer.
 
-Perhaps we could revisit this later when my mind is a bit more sober and my thoughts are clearer.
+	// Perhaps we could revisit this later when my mind is a bit more sober and my thoughts are clearer.
 
-Enjoy this poem instead:
+	// Enjoy this poem instead:
 
-Fermenting mind swirls,
-Grape juice turned to liquid fire,
-Drunkard dreams of wine.
-	`, nil
+	// Fermenting mind swirls,
+	// Grape juice turned to liquid fire,
+	// Drunkard dreams of wine.
+	// 	`, nil
+	result, err := s.aiClient.AskQuestion(context.Background(), question) // TODO passin context
+	if err != nil {
+		return "", err
+	}
+	return result, nil
 }
 
 // func (s *FermentationService) CreateFermentation(f *repository.Fermentation) error {

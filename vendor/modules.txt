@@ -11,9 +11,11 @@ github.com/aymanbagabas/go-osc52/v2
 # github.com/charmbracelet/bubbles v0.20.0
 ## explicit; go 1.18
 github.com/charmbracelet/bubbles/cursor
+github.com/charmbracelet/bubbles/help
 github.com/charmbracelet/bubbles/key
 github.com/charmbracelet/bubbles/runeutil
 github.com/charmbracelet/bubbles/spinner
+github.com/charmbracelet/bubbles/table
 github.com/charmbracelet/bubbles/textarea
 github.com/charmbracelet/bubbles/textarea/memoization
 github.com/charmbracelet/bubbles/viewport

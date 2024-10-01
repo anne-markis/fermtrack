@@ -44,7 +44,7 @@ func TestGetFermentationHandler(t *testing.T) {
 	handler := NewFermentationHandler(mockService)
 
 	mockFermentation := &repository.Fermentation{UUID: "123", Nickname: "Test Fermentation"}
-	mockService.On("GetFermentationByID", "123").Return(mockFermentation, nil)
+	mockService.On("GetFermentationByID", "123").Return(mockFermentation, nil) // TODO not this style
 
 	req, _ := http.NewRequest("GET", "/fermentations/123", nil)
 	rr := httptest.NewRecorder()

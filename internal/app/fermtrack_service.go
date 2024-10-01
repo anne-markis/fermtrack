@@ -16,7 +16,7 @@ type FermentationService struct {
 
 type FermentationTrackService interface {
 	GetFermentations(ctx context.Context) ([]repository.Fermentation, error)
-	GetFermentationByID(ctx context.Context, uuid string) (*repository.Fermentation, error)
+	GetFermentationByUUID(ctx context.Context, uuid string) (*repository.Fermentation, error)
 	GetFermentationAdvice(ctx context.Context, question string) (string, error)
 	// CreateFermentation(f *repository.Fermentation) error
 	// UpdateFermentation(f *repository.Fermentation) error
@@ -30,8 +30,8 @@ func (s *FermentationService) GetFermentations(ctx context.Context) ([]repositor
 	return s.repo.FindAll()
 }
 
-func (s *FermentationService) GetFermentationByID(ctx context.Context, uuid string) (*repository.Fermentation, error) {
-	return s.repo.FindByID(uuid)
+func (s *FermentationService) GetFermentationByUUID(ctx context.Context, uuid string) (*repository.Fermentation, error) {
+	return s.repo.FindByUUID(uuid)
 }
 
 // TODO join AI answer

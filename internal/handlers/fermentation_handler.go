@@ -30,7 +30,7 @@ func (h *FermentationHandler) GetFermentations(w http.ResponseWriter, r *http.Re
 func (h *FermentationHandler) GetFermentation(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	uuid := vars["uuid"]
-	fermentation, err := h.service.GetFermentationByID(r.Context(), uuid)
+	fermentation, err := h.service.GetFermentationByUUID(r.Context(), uuid)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return

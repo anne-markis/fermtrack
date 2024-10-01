@@ -5,7 +5,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
+	"time"
 )
 
 type FermentationClient struct {
@@ -20,19 +22,39 @@ func NewFermentationClient(baseURL string) *FermentationClient {
 	}
 }
 
-// type Fermentation struct {
-// 	ID           int        `json:"id"`
-// 	UUID         string     `json:"uuid"`
-// 	Nickname     string     `json:"nickname"`
-// 	StartAt      time.Time  `json:"start_at"`
-// 	BottledAt    *time.Time `json:"bottled_at"`
-// 	RecipeNotes  string     `json:"recipe_notes"`
-// 	TastingNotes *string    `json:"tasting_notes"`
-// 	DeletedAt    *time.Time `json:"deleted_at"`
-// }
+type Fermentation struct {
+	ID           int        `json:"id"`
+	UUID         string     `json:"uuid"`
+	Nickname     string     `json:"nickname"`
+	StartAt      time.Time  `json:"start_at"`
+	BottledAt    *time.Time `json:"bottled_at"`
+	RecipeNotes  string     `json:"recipe_notes"`
+	TastingNotes *string    `json:"tasting_notes"`
+}
+
+func (f Fermentation) ToString() string {
+	recipeNotes := "[No Receipe Notes]"
+	tastingNotes := "[No Tasting Notes]"
+	if f.TastingNotes != nil {
+		tastingNotes = *f.TastingNotes
+	}
+	if f.RecipeNotes != "" {
+		recipeNotes = f.RecipeNotes
+	}
+	return fmt.Sprintf(`%s
+
+Recipe Notes: 
+	%s
+
+Tasting Notes: 
+	%s
+	`, f.Nickname, recipeNotes, tastingNotes)
+}
 
 type Fermtracker interface {
 	AskQuestion(ctx context.Context, question *FermentationQuestion) (*FermentationAdvice, error)
+	ListFermentations(ctx context.Context) ([]Fermentation, error)
+	GetFermentation(ctx context.Context, uuid string) (*Fermentation, error)
 }
 
 type FermentationQuestion struct {
@@ -42,9 +64,8 @@ type FermentationAdvice struct {
 	Answer string `json:"answer"`
 }
 
-// TODO the input and output is weird here
 func (fc *FermentationClient) AskQuestion(ctx context.Context, question *FermentationQuestion) (*FermentationAdvice, error) {
-	url := fmt.Sprintf("%s/fermentations/advice", fc.baseURL)
+	url := fmt.Sprintf("%s/v1/fermentations/advice", fc.baseURL)
 	body, err := json.Marshal(question)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal fermentation: %v", err)
@@ -67,4 +88,43 @@ func (fc *FermentationClient) AskQuestion(ctx context.Context, question *Ferment
 	}
 
 	return &answer, nil
+}
+
+func (fc *FermentationClient) ListFermentations(ctx context.Context) ([]Fermentation, error) {
+	url := fmt.Sprintf("%s/v1/fermentations", fc.baseURL)
+	resp, err := http.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("error response: %s", body)
+	}
+
+	var fermentations []Fermentation
+	if err := json.NewDecoder(resp.Body).Decode(&fermentations); err != nil {
+		return nil, fmt.Errorf("failed to decode response: %w", err)
+	}
+
+	return fermentations, nil
+}
+
+func (fc *FermentationClient) GetFermentation(ctx context.Context, uuid string) (*Fermentation, error) {
+	url := fmt.Sprintf("%s/v1/fermentations/%s", fc.baseURL, uuid)
+	resp, err := http.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("error response: %s", body)
+	}
+
+	var fermentation Fermentation
+	if err := json.NewDecoder(resp.Body).Decode(&fermentation); err != nil {
+		return nil, fmt.Errorf("failed to decode response: %w", err)
+	}
+	return &fermentation, nil
 }

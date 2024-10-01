@@ -28,14 +28,6 @@ func BubblyGlass() string {
 	`
 }
 
-func IDunno() string {
-	return `¯\_(ツ)_/¯`
-}
-
-func Grump() string {
-	return `(ಠ╭╮ಠ)`
-}
-
 func FermTrack_ANSIShadow() string {
 	return `
 ███████╗███████╗██████╗ ███╗   ███╗████████╗██████╗  █████╗  ██████╗██╗  ██╗

@@ -6,6 +6,7 @@ import (
 
 	"github.com/anne-markis/fermtrack/cli/client"
 	"github.com/charmbracelet/bubbles/spinner"
+	"github.com/charmbracelet/bubbles/table"
 	"github.com/charmbracelet/bubbles/textarea"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
@@ -20,21 +21,24 @@ var (
 )
 
 type homePage struct {
-	responseViewPort viewport.Model
-	questionTextArea textarea.Model
-	thinkingSpinner  spinner.Model
-	isThinking       bool
-	fermTracker      client.Fermtracker
-	err              error
+	responseViewPort   viewport.Model
+	questionTextArea   textarea.Model
+	thinkingSpinner    spinner.Model
+	isThinking         bool
+	fermTracker        client.Fermtracker
+	fermentationsTable table.Model
+	additionalHelp     string
+	err                error
 }
 
 func NewHomePage(fermTracker client.Fermtracker) homePage {
 	return homePage{
-		questionTextArea: questionTextArea(),
-		responseViewPort: chatViewport(),
-		thinkingSpinner:  thinkingSpinner(),
-		fermTracker:      fermTracker,
-		err:              nil, // TODO use this
+		questionTextArea:   questionTextArea(),
+		responseViewPort:   chatViewport(),
+		thinkingSpinner:    thinkingSpinner(),
+		fermTracker:        fermTracker,
+		fermentationsTable: fermentationsTable([]client.Fermentation{}),
+		err:                nil, // TODO use this
 	}
 }
 
@@ -59,8 +63,8 @@ func (h homePage) View() string {
 	}
 	title := FermTrack_ANSIShadow()
 	view := title + "\n" +
-		lipgloss.JoinHorizontal(lipgloss.Top, h.questionTextArea.View(), spinner, h.responseViewPort.View()) +
-		helpView()
+		lipgloss.JoinHorizontal(lipgloss.Top, h.questionTextArea.View(), spinner, h.responseViewPort.View(), h.fermentationsTable.View()) +
+		h.helpView()
 	return view
 }
 
@@ -70,6 +74,7 @@ func (h homePage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		vpCmd      tea.Cmd
 		aiCmd      tea.Cmd
 		spinnerCmd tea.Cmd
+		tableCmd   tea.Cmd
 	)
 
 	cmds := []tea.Cmd{}
@@ -83,8 +88,16 @@ func (h homePage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.Type {
-		case tea.KeyCtrlC, tea.KeyEsc:
+		case tea.KeyCtrlC:
 			return h, tea.Quit
+		case tea.KeyEsc:
+			if h.fermentationsTable.Focused() {
+				h.fermentationsTable.Blur()
+				h.additionalHelp = "esc: select table"
+			} else {
+				h.fermentationsTable.Focus()
+				h.additionalHelp = "esc: unselect table"
+			}
 		case tea.KeyEnter:
 			input := h.questionTextArea.Value()
 
@@ -92,14 +105,30 @@ func (h homePage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if err != nil {
 				cmds = append(cmds, fwdError(err))
 			}
-			if systemCmd == AskWineWizard {
+
+			switch systemCmd.Command {
+			case AskWineWizard:
 				cmds = append(cmds, askQuestion(h.fermTracker, input), setThinking(true))
-			} else {
-				h.responseViewPort.SetContent(responderStyle.Render(systemCmd))
+			case ListFermentations:
+				cmds = append(cmds, listFermentations(h.fermTracker), setThinking(true))
+			case ClearList:
+				h.responseViewPort.SetContent(responderStyle.Render(fmt.Sprintf("🍷🧙:")))
+				h.fermentationsTable = fermentationsTable([]client.Fermentation{})
+			case ViewFermentation:
+				if h.fermentationsTable.SelectedRow() != nil {
+					uuid := h.fermentationsTable.SelectedRow()[0] // uuid col is first col
+					cmds = append(cmds, viewFermentation(h.fermTracker, uuid), setThinking(true))
+				} else {
+					h.responseViewPort.SetContent(responderStyle.Render(fmt.Sprintf("🍷🧙: Try using 'list' and selecting a row first!")))
+				}
+			case EditFermentation:
+				h.responseViewPort.SetContent(responderStyle.Render(fmt.Sprintf("🍷🧙: Unimplemented! %s", BubblyGlass())))
+				h.responseViewPort.GotoTop()
+			default:
+				h.responseViewPort.SetContent(responderStyle.Render(systemCmd.Extra)) // help text
 			}
 
 			h.questionTextArea.Reset()
-			h.responseViewPort.GotoBottom()
 		}
 	case someAnswer:
 		h.responseViewPort.SetContent(responderStyle.Render(fmt.Sprintf("🍷🧙: %v", msg)))
@@ -113,6 +142,19 @@ func (h homePage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		} else {
 			h.isThinking = false
 		}
+	case fermentationList:
+		h.questionTextArea.Reset()
+
+		h.fermentationsTable = fermentationsTable(msg.ferms)
+		h.fermentationsTable.Focus()
+
+		h.responseViewPort.SetContent(responderStyle.Render("🍷🧙: ok"))
+		h.responseViewPort.GotoTop()
+		cmds = append(cmds, setThinking(false))
+	case fermentationView:
+		h.responseViewPort.SetContent(responderStyle.Render(msg.ferm.ToString()))
+		h.responseViewPort.GotoTop()
+		cmds = append(cmds, setThinking(false))
 	case errMsg:
 		h.err = msg
 		return h, nil
@@ -122,17 +164,24 @@ func (h homePage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		cmds = append(cmds, spinnerCmd)
 	}
 
+	h.fermentationsTable, tableCmd = h.fermentationsTable.Update(msg)
+	cmds = append(cmds, tableCmd)
+
 	return h, tea.Batch(cmds...)
 }
 
-func helpView() string {
-	return helpStyle("\n\n help: Get commands • ↑/↓: scroll answers • ctrl+c: Quit\n")
+func (h homePage) helpView() string {
+	helpText := "\n\n help: Get commands • ↑/↓: scroll answers • ctrl+c: Quit"
+	if h.additionalHelp != "" {
+		helpText = helpText + " • " + h.additionalHelp
+	}
+
+	return helpStyle(helpText)
 }
 
 func chatViewport() viewport.Model {
-	viewPort := viewport.New(80, height)
+	viewPort := viewport.New(60, height)
 	viewPort.SetContent(`🍷🧙 Ask me, the wine wizard, anything you like.`)
-	// viewPort.Style = lipgloss.NewStyle()
 	return viewPort
 }
 
@@ -161,6 +210,36 @@ func thinkingSpinner() spinner.Model {
 	return thinkingSpinner
 }
 
+func fermentationsTable(ferms []client.Fermentation) table.Model {
+	columns := []table.Column{
+		{Title: "UUID", Width: 36},
+		{Title: "NickName", Width: 20},
+		{Title: "Started At", Width: 15},
+	}
+	rows := make([]table.Row, len(ferms))
+	for i, f := range ferms {
+		rows[i] = table.Row{f.UUID, f.Nickname, f.StartAt.Format("2006-02-01")}
+	}
+	t := table.New(
+		table.WithColumns(columns),
+		table.WithRows(rows),
+		table.WithFocused(true),
+		table.WithHeight(7),
+	)
+	s := table.DefaultStyles()
+	s.Header = s.Header.
+		BorderStyle(lipgloss.NormalBorder()).
+		BorderForeground(lipgloss.Color("240")).
+		BorderBottom(true).
+		Bold(false)
+	s.Selected = s.Selected.
+		Foreground(lipgloss.Color("229")).
+		Background(lipgloss.Color("57")).
+		Bold(false)
+	t.SetStyles(s)
+	return t
+}
+
 type qIsThinking bool
 
 func setThinking(isThinking bool) tea.Cmd {
@@ -186,5 +265,29 @@ func askQuestion(fermtrack client.Fermtracker, q string) tea.Cmd {
 			return someAnswer(err.Error())
 		}
 		return someAnswer(answer.Answer)
+	}
+}
+
+type fermentationList struct{ ferms []client.Fermentation }
+
+func listFermentations(fermtrack client.Fermtracker) tea.Cmd {
+	return func() tea.Msg {
+		ferms, err := fermtrack.ListFermentations(context.Background())
+		if err != nil {
+			return someAnswer(err.Error())
+		}
+		return fermentationList{ferms}
+	}
+}
+
+type fermentationView struct{ ferm *client.Fermentation }
+
+func viewFermentation(fermtrack client.Fermtracker, uuid string) tea.Cmd {
+	return func() tea.Msg {
+		ferm, err := fermtrack.GetFermentation(context.Background(), uuid)
+		if err != nil {
+			return someAnswer(err.Error())
+		}
+		return fermentationView{ferm}
 	}
 }

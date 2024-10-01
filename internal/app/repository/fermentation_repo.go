@@ -3,6 +3,9 @@ package repository
 
 import (
 	"database/sql"
+	"errors"
+
+	"github.com/rs/zerolog/log"
 )
 
 type MySQLFermentationRepository struct {
@@ -14,6 +17,7 @@ func NewMySQLFermentationRepository(db *sql.DB) *MySQLFermentationRepository {
 }
 
 func (r *MySQLFermentationRepository) FindAll() ([]Fermentation, error) {
+	log.Info().Msg("find all")
 	rows, err := r.db.Query(`
 	SELECT
 		id
@@ -42,9 +46,37 @@ func (r *MySQLFermentationRepository) FindAll() ([]Fermentation, error) {
 	return fermentations, nil
 }
 
-func (r *MySQLFermentationRepository) FindByID(uuid string) (*Fermentation, error) {
-	// Implement MySQL query for fetching by UUID
-	return nil, nil
+func (r *MySQLFermentationRepository) FindByUUID(uuid string) (*Fermentation, error) {
+	log.Info().Any("uuid", uuid).Msg("find by uuid")
+	query := `
+	SELECT
+		id
+		, uuid
+		, nickname
+		, start_at
+		, bottled_at
+		, recipe_notes
+		, tasting_notes
+	FROM fermentations
+		WHERE uuid = ?
+	`
+
+	var fermentation Fermentation
+	if err := r.db.QueryRow(query, uuid).Scan(
+		&fermentation.ID,
+		&fermentation.UUID,
+		&fermentation.Nickname,
+		&fermentation.StartAt,
+		&fermentation.BottledAt,
+		&fermentation.RecipeNotes,
+		&fermentation.TastingNotes,
+	); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, errors.New("fermentation not found")
+		}
+	}
+
+	return &fermentation, nil
 }
 
 func (r *MySQLFermentationRepository) Create(f *Fermentation) error {

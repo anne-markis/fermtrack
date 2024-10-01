@@ -169,12 +169,12 @@ func (_c *FermentationRepository_FindAll_Call) RunAndReturn(run func() ([]reposi
 	return _c
 }
 
-// FindByID provides a mock function with given fields: uuid
-func (_m *FermentationRepository) FindByID(uuid string) (*repository.Fermentation, error) {
+// FindByUUID provides a mock function with given fields: uuid
+func (_m *FermentationRepository) FindByUUID(uuid string) (*repository.Fermentation, error) {
 	ret := _m.Called(uuid)
 
 	if len(ret) == 0 {
-		panic("no return value specified for FindByID")
+		panic("no return value specified for FindByUUID")
 	}
 
 	var r0 *repository.Fermentation
@@ -199,30 +199,30 @@ func (_m *FermentationRepository) FindByID(uuid string) (*repository.Fermentatio
 	return r0, r1
 }
 
-// FermentationRepository_FindByID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FindByID'
-type FermentationRepository_FindByID_Call struct {
+// FermentationRepository_FindByUUID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FindByUUID'
+type FermentationRepository_FindByUUID_Call struct {
 	*mock.Call
 }
 
-// FindByID is a helper method to define mock.On call
+// FindByUUID is a helper method to define mock.On call
 //   - uuid string
-func (_e *FermentationRepository_Expecter) FindByID(uuid interface{}) *FermentationRepository_FindByID_Call {
-	return &FermentationRepository_FindByID_Call{Call: _e.mock.On("FindByID", uuid)}
+func (_e *FermentationRepository_Expecter) FindByUUID(uuid interface{}) *FermentationRepository_FindByUUID_Call {
+	return &FermentationRepository_FindByUUID_Call{Call: _e.mock.On("FindByUUID", uuid)}
 }
 
-func (_c *FermentationRepository_FindByID_Call) Run(run func(uuid string)) *FermentationRepository_FindByID_Call {
+func (_c *FermentationRepository_FindByUUID_Call) Run(run func(uuid string)) *FermentationRepository_FindByUUID_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(string))
 	})
 	return _c
 }
 
-func (_c *FermentationRepository_FindByID_Call) Return(_a0 *repository.Fermentation, _a1 error) *FermentationRepository_FindByID_Call {
+func (_c *FermentationRepository_FindByUUID_Call) Return(_a0 *repository.Fermentation, _a1 error) *FermentationRepository_FindByUUID_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *FermentationRepository_FindByID_Call) RunAndReturn(run func(string) (*repository.Fermentation, error)) *FermentationRepository_FindByID_Call {
+func (_c *FermentationRepository_FindByUUID_Call) RunAndReturn(run func(string) (*repository.Fermentation, error)) *FermentationRepository_FindByUUID_Call {
 	_c.Call.Return(run)
 	return _c
 }

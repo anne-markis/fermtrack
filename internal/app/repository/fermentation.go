@@ -15,7 +15,7 @@ type Fermentation struct {
 
 type FermentationRepository interface {
 	FindAll() ([]Fermentation, error)
-	FindByID(uuid string) (*Fermentation, error)
+	FindByUUID(uuid string) (*Fermentation, error)
 	Create(fermentation *Fermentation) error
 	Update(fermentation *Fermentation) error
 	Delete(uuid string) error

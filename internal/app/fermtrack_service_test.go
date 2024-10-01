@@ -34,7 +34,7 @@ func TestGetFermentations(t *testing.T) {
 	mockRepo.AssertExpectations(t)
 }
 
-func TestGetFermentationByID(t *testing.T) {
+func TestGetFermentationByUUID(t *testing.T) {
 	mockAi := new(mocks.AIClient)
 	mockRepo := new(mocks.FermentationRepository)
 	service := NewFermentationService(mockRepo, mockAi)
@@ -43,7 +43,7 @@ func TestGetFermentationByID(t *testing.T) {
 
 	mockRepo.On("FindByID", "123").Return(mockFermentation, nil)
 
-	fermentation, err := service.GetFermentationByID(context.Background(), "123")
+	fermentation, err := service.GetFermentationByUUID(context.Background(), "123")
 
 	assert.Nil(t, err)
 	assert.Equal(t, "Fermentation 1", fermentation.Nickname)

@@ -18,8 +18,6 @@ type FermentationTrackService interface {
 	GetFermentations(ctx context.Context) ([]repository.Fermentation, error)
 	GetFermentationByUUID(ctx context.Context, uuid string) (*repository.Fermentation, error)
 	GetFermentationAdvice(ctx context.Context, question string) (string, error)
-	// CreateFermentation(f *repository.Fermentation) error
-	// UpdateFermentation(f *repository.Fermentation) error
 }
 
 func NewFermentationService(repo repository.FermentationRepository, aiClent ai.AIClient) *FermentationService {
@@ -34,8 +32,6 @@ func (s *FermentationService) GetFermentationByUUID(ctx context.Context, uuid st
 	return s.repo.FindByUUID(uuid)
 }
 
-// TODO join AI answer
-// TODO test
 func (s *FermentationService) GetFermentationAdvice(ctx context.Context, question string) (string, error) {
 	question = strings.Join(strings.Fields(question), "")
 	if question == "" {
@@ -62,14 +58,3 @@ func (s *FermentationService) GetFermentationAdvice(ctx context.Context, questio
 	}
 	return result, nil
 }
-
-// func (s *FermentationService) CreateFermentation(f *repository.Fermentation) error {
-// 	if f.Nickname == "" {
-// 		return errors.New("nickname cannot be empty")
-// 	}
-// 	return s.repo.Create(f)
-// }
-
-// func (s *FermentationService) UpdateFermentation(f *repository.Fermentation) error {
-// 	return s.repo.Update(f)
-// }

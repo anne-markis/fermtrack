@@ -18,6 +18,13 @@ services:
       - "8080:8080"
     depends_on:
       - mysql
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "5000:5000"
+    depends_on:
+      - fermtrack
 
 volumes:
   mysql_data:

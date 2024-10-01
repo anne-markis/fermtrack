@@ -43,6 +43,15 @@ Migrations are by goose.
 
 ```
 
+### Future changes
+* Add users, and users to own fermentations
+* Add filtering for GET /v1/fermentations
+* Edit/Create fermentation
+* Auth
+* Better test coverage
+* Put on server
+* Comments
+
 ### Mermaid class diagram
 ```
 graph TD

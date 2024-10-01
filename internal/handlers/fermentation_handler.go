@@ -61,33 +61,3 @@ func (h *FermentationHandler) GetFermentationAdvice(w http.ResponseWriter, r *ht
 	}
 	json.NewEncoder(w).Encode(answer)
 }
-
-// func (h *FermentationHandler) CreateFermentation(w http.ResponseWriter, r *http.Request) {
-// 	var fermentation repository.Fermentation
-// 	if err := json.NewDecoder(r.Body).Decode(&fermentation); err != nil {
-// 		http.Error(w, err.Error(), http.StatusBadRequest)
-// 		return
-// 	}
-// 	if err := h.service.CreateFermentation(&fermentation); err != nil {
-// 		http.Error(w, err.Error(), http.StatusBadRequest)
-// 		return
-// 	}
-// 	w.WriteHeader(http.StatusCreated)
-// }
-
-// func (h *FermentationHandler) UpdateFermentation(w http.ResponseWriter, r *http.Request) {
-// 	var fermentation repository.Fermentation
-// 	if err := json.NewDecoder(r.Body).Decode(&fermentation); err != nil {
-// 		http.Error(w, err.Error(), http.StatusBadRequest)
-// 		return
-// 	}
-// 	if err := h.service.UpdateFermentation(&fermentation); err != nil {
-// 		http.Error(w, err.Error(), http.StatusBadRequest)
-// 		return
-// 	}
-// 	json.NewEncoder(w).Encode(fermentation)
-// }
-
-// func (h *FermentationHandler) DeleteFermentation(w http.ResponseWriter, r *http.Request) {
-// 	// TODO
-// }

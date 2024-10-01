@@ -72,24 +72,9 @@ func (r *MySQLFermentationRepository) FindByUUID(uuid string) (*Fermentation, er
 		&fermentation.TastingNotes,
 	); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, errors.New("fermentation not found")
+			return nil, nil
 		}
 	}
 
 	return &fermentation, nil
-}
-
-func (r *MySQLFermentationRepository) Create(f *Fermentation) error {
-	// Implement MySQL insert query
-	return nil
-}
-
-func (r *MySQLFermentationRepository) Update(f *Fermentation) error {
-	// Implement MySQL update query
-	return nil
-}
-
-func (r *MySQLFermentationRepository) Delete(uuid string) error {
-	// Implement MySQL delete query
-	return nil
 }

@@ -55,6 +55,7 @@ type Fermtracker interface {
 	AskQuestion(ctx context.Context, question *FermentationQuestion) (*FermentationAdvice, error)
 	ListFermentations(ctx context.Context) ([]Fermentation, error)
 	GetFermentation(ctx context.Context, uuid string) (*Fermentation, error)
+	Login(ctx context.Context, username, password string) error
 }
 
 type FermentationQuestion struct {
@@ -62,6 +63,10 @@ type FermentationQuestion struct {
 }
 type FermentationAdvice struct {
 	Answer string `json:"answer"`
+}
+
+func (fc *FermentationClient) Login(ctx context.Context, username, password string) error {
+	return fmt.Errorf("unimplemented") // TODO
 }
 
 func (fc *FermentationClient) AskQuestion(ctx context.Context, question *FermentationQuestion) (*FermentationAdvice, error) {

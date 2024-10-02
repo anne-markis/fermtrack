@@ -76,7 +76,7 @@ func main() {
 	fermService := app.NewFermentationService(fermRepo, aiClient)
 
 	fermHandler := handlers.NewFermentationHandler(fermService)
-	authHandler := handlers.NewAuthHandler(authService)
+	authHandler := handlers.NewAuthHandler(authService, userRepo)
 	userHandler := handlers.NewUserHandler(userRepo)
 
 	r := router.NewRouter(fermHandler, authHandler, userHandler)

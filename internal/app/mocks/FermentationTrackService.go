@@ -5,7 +5,7 @@ package mocks
 import (
 	context "context"
 
-	repository "github.com/anne-markis/fermtrack/internal/app/repository"
+	repository "github.com/anne-markis/fermtrack/internal/app/domain"
 	mock "github.com/stretchr/testify/mock"
 )
 

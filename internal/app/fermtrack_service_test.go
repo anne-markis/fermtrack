@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"testing"
 
+	repository "github.com/anne-markis/fermtrack/internal/app/domain"
 	"github.com/anne-markis/fermtrack/internal/app/mocks"
-	"github.com/anne-markis/fermtrack/internal/app/repository"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 

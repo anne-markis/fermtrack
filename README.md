@@ -48,7 +48,6 @@ Migrations are by goose.
 * Add filtering for GET /v1/fermentations
 * Edit/Create fermentation
 * Auth
-* Better test coverage
 * Put on server
 * Comments
 

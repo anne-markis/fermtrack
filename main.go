@@ -12,9 +12,10 @@ import (
 
 	"github.com/anne-markis/fermtrack/internal/app"
 	"github.com/anne-markis/fermtrack/internal/app/ai"
-	"github.com/anne-markis/fermtrack/internal/app/repository"
+	"github.com/anne-markis/fermtrack/internal/app/domain"
 	"github.com/anne-markis/fermtrack/internal/config"
 	"github.com/anne-markis/fermtrack/internal/handlers"
+	"github.com/anne-markis/fermtrack/internal/middleware"
 
 	"github.com/anne-markis/fermtrack/internal/router"
 
@@ -65,18 +66,24 @@ func main() {
 
 	aiClient, err := ai.InitClient()
 	if err != nil {
-		log.Error().Err(err).Msg("cannot connect to open ai, using dummy client")
-		// aiClient =
+		log.Error().Err(err).Msg("failed to setup AI client")
 	}
 
-	repo := repository.NewMySQLFermentationRepository(db)
-	fermService := app.NewFermentationService(repo, aiClient)
-	fermHandler := handlers.NewFermentationHandler(fermService)
+	fermRepo := domain.NewMySQLFermentationRepository(db)
+	userRepo := domain.NewMySQLUserRepository(db)
 
-	r := router.NewRouter(fermHandler)
+	authService := app.NewAuthService(userRepo)
+	fermService := app.NewFermentationService(fermRepo, aiClient)
+
+	fermHandler := handlers.NewFermentationHandler(fermService)
+	authHandler := handlers.NewAuthHandler(authService)
+	userHandler := handlers.NewUserHandler(userRepo)
+
+	r := router.NewRouter(fermHandler, authHandler, userHandler)
 
 	// middleware
-	r.Use(loggingMiddleware)
+	r.Use(middleware.LoggingMiddleware) // log route
+	r.Use(middleware.AuthMiddleware)    // validate jwt TODO auth optional on some routes
 
 	srv := &http.Server{
 		Addr:         fmt.Sprintf("0.0.0.0:%s", cfg.Server.Port),
@@ -113,11 +120,4 @@ func loadEnvVars(envFile string) {
 	if err != nil {
 		log.Fatal().Msg(err.Error())
 	}
-}
-
-func loggingMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Info().Msg(r.RequestURI)
-		next.ServeHTTP(w, r)
-	})
 }

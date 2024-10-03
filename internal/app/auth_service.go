@@ -3,18 +3,14 @@ package app
 import (
 	"errors"
 	"fmt"
-	"os"
-	"time"
 
 	"github.com/anne-markis/fermtrack/internal/app/domain"
 	"github.com/anne-markis/fermtrack/internal/utils"
-	"github.com/golang-jwt/jwt/v5"
 )
 
 // TODO test
 type AuthService struct {
-	userRepo  domain.UserRepository
-	jwtSecret string
+	userRepo domain.UserRepository
 }
 
 type Authenicator interface {
@@ -22,13 +18,12 @@ type Authenicator interface {
 }
 
 func NewAuthService(userRepo domain.UserRepository) *AuthService {
-	jwtKey := os.Getenv("JWT_SECRET_KEY")
-	return &AuthService{userRepo: userRepo, jwtSecret: jwtKey}
+	return &AuthService{userRepo: userRepo}
 }
 
 func (a *AuthService) Login(username, password string) (string, error) {
 	user, err := a.userRepo.FindByUsername(username)
-	if err != nil {
+	if err != nil || user == nil {
 		return "", errors.New("invalid username or password")
 	}
 
@@ -36,22 +31,10 @@ func (a *AuthService) Login(username, password string) (string, error) {
 		return "", errors.New("invalid username or password")
 	}
 
-	token, err := a.generateJWT(user.Username)
+	token, err := utils.GenerateJWT(user.Username)
 	if err != nil {
-		return "", err
+		return "", errors.New(fmt.Sprintf("failed to generate jwt token: %s", err.Error()))
 	}
 
 	return token, nil
-}
-
-func (a *AuthService) generateJWT(username string) (string, error) {
-	if a.jwtSecret == "" {
-		return "", fmt.Errorf("jwt not set up")
-	}
-	claims := jwt.MapClaims{
-		"username": username,
-		"exp":      time.Now().Add(time.Hour * 24).Unix(),
-	}
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(a.jwtSecret)
 }

@@ -18,7 +18,9 @@ type FermentationClient struct {
 func NewFermentationClient(baseURL string) *FermentationClient {
 	return &FermentationClient{
 		baseURL: baseURL,
-		client:  &http.Client{},
+		client: &http.Client{
+			Timeout: time.Second * 15,
+		},
 	}
 }
 
@@ -55,30 +57,78 @@ type Fermtracker interface {
 	AskQuestion(ctx context.Context, question *FermentationQuestion) (*FermentationAdvice, error)
 	ListFermentations(ctx context.Context) ([]Fermentation, error)
 	GetFermentation(ctx context.Context, uuid string) (*Fermentation, error)
-	Login(ctx context.Context, username, password string) error
+	Login(ctx context.Context, username, password string) (*LoginResponse, error)
 }
 
 type FermentationQuestion struct {
-	Question string `json:"question"`
+	Question  string `json:"question"`
+	UserToken string `json:"-"` // TODO not best place for this
 }
 type FermentationAdvice struct {
 	Answer string `json:"answer"`
 }
 
-func (fc *FermentationClient) Login(ctx context.Context, username, password string) error {
-	return fmt.Errorf("unimplemented") // TODO
+type LoginRequest struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+type LoginResponse struct {
+	Token    string `json:"token"`
+	Username string `json:"username"`
+	UUID     string `json:"uuid"`
+}
+
+func (fc *FermentationClient) Login(ctx context.Context, username, password string) (*LoginResponse, error) {
+	url := fmt.Sprintf("%s/v1/login", fc.baseURL)
+
+	req := LoginRequest{
+		Username: username,
+		Password: password,
+	}
+
+	body, err := json.Marshal(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal user: %v", err)
+	}
+
+	resp, err := fc.client.Post(url, "application/json", bytes.NewBuffer(body))
+	if err != nil {
+		return nil, fmt.Errorf("failed login: %v", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+
+	var loginResp LoginResponse
+
+	if err := json.NewDecoder(resp.Body).Decode(&loginResp); err != nil {
+		return nil, fmt.Errorf("failed to decode response: %v", err)
+	}
+
+	return &loginResp, nil
 }
 
 func (fc *FermentationClient) AskQuestion(ctx context.Context, question *FermentationQuestion) (*FermentationAdvice, error) {
 	url := fmt.Sprintf("%s/v1/fermentations/advice", fc.baseURL)
+
 	body, err := json.Marshal(question)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal fermentation: %v", err)
 	}
 
-	resp, err := fc.client.Post(url, "application/json", bytes.NewBuffer(body))
+	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(body))
 	if err != nil {
-		return nil, fmt.Errorf("failed to create fermentation: %v", err)
+		return nil, fmt.Errorf("failed to create request: %v", err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", question.UserToken))
+
+	resp, err := fc.client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to ask question: %v", err)
 	}
 	defer resp.Body.Close()
 
@@ -95,6 +145,7 @@ func (fc *FermentationClient) AskQuestion(ctx context.Context, question *Ferment
 	return &answer, nil
 }
 
+// TODO need token
 func (fc *FermentationClient) ListFermentations(ctx context.Context) ([]Fermentation, error) {
 	url := fmt.Sprintf("%s/v1/fermentations", fc.baseURL)
 	resp, err := http.Get(url)
@@ -115,6 +166,7 @@ func (fc *FermentationClient) ListFermentations(ctx context.Context) ([]Fermenta
 	return fermentations, nil
 }
 
+// TODO need token
 func (fc *FermentationClient) GetFermentation(ctx context.Context, uuid string) (*Fermentation, error) {
 	url := fmt.Sprintf("%s/v1/fermentations/%s", fc.baseURL, uuid)
 	resp, err := http.Get(url)

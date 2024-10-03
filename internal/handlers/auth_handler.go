@@ -52,7 +52,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Error().Any("user", req.Username).Msg("successful login")
+	log.Error().Any("username", req.Username).Any("user_uuid", user.UUID).Msg("successful login")
 
 	w.Header().Set("Content-Type", "application/json")
 

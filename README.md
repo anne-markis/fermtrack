@@ -33,14 +33,14 @@ To view logs
 
 
 ### Creating a user
-Create a user locally by starting the server and running the following:
+Create a user locally by starting the server and running the following (substituting the username/pass as you like):
 
 ```
 curl -X POST http://localhost:8080/v1/users \
   -H "Content-Type: application/json" \
   -d '{
-    "username": "patreides",
-    "password": "muadib"
+    "username": "cooluser",
+    "password": "cool123"
   }'
 ```
 

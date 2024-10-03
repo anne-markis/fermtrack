@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/anne-markis/fermtrack/cli/client"
 	"github.com/charmbracelet/bubbles/spinner"
@@ -20,6 +21,12 @@ var (
 	height         = 10
 )
 
+type userInfo struct {
+	encodedToken string
+	username     string
+	uuid         string
+}
+
 type homePage struct {
 	responseViewPort   viewport.Model
 	questionTextArea   textarea.Model
@@ -28,6 +35,7 @@ type homePage struct {
 	fermTracker        client.Fermtracker
 	fermentationsTable table.Model
 	additionalHelp     string
+	userInfo           userInfo
 	err                error
 }
 
@@ -108,7 +116,7 @@ func (h homePage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			switch systemCmd.Command {
 			case AskWineWizard:
-				cmds = append(cmds, askQuestion(h.fermTracker, input), setThinking(true))
+				cmds = append(cmds, askQuestion(h.fermTracker, input, h.userInfo.encodedToken), setThinking(true))
 			case ListFermentations:
 				cmds = append(cmds, listFermentations(h.fermTracker), setThinking(true))
 			case ClearList:
@@ -124,6 +132,11 @@ func (h homePage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case EditFermentation:
 				h.responseViewPort.SetContent(responderStyle.Render(fmt.Sprintf("🍷🧙: Unimplemented! %s", BubblyGlass())))
 				h.responseViewPort.GotoTop()
+			case Login:
+				userInput := strings.Split(input, " ")
+				user := userInput[1]
+				pass := userInput[2]
+				cmds = append(cmds, attemptLogin(h.fermTracker, user, pass), setThinking(true))
 			default:
 				h.responseViewPort.SetContent(responderStyle.Render(systemCmd.Extra)) // help text
 			}
@@ -152,8 +165,16 @@ func (h homePage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		h.responseViewPort.GotoTop()
 		cmds = append(cmds, setThinking(false))
 	case fermentationView:
-		h.responseViewPort.SetContent(responderStyle.Render(msg.ferm.ToString()))
+		h.responseViewPort.SetContent(responderStyle.Render(msg.ToString()))
 		h.responseViewPort.GotoTop()
+		cmds = append(cmds, setThinking(false))
+	case userLogin:
+		h.userInfo = userInfo{
+			encodedToken: msg.Token,
+			username:     msg.Username,
+			uuid:         msg.UUID,
+		}
+		h.responseViewPort.SetContent(responderStyle.Render("🍷🧙: Login successful! Ask me anything or try `help`"))
 		cmds = append(cmds, setThinking(false))
 	case errMsg:
 		h.err = msg
@@ -166,6 +187,12 @@ func (h homePage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	h.fermentationsTable, tableCmd = h.fermentationsTable.Update(msg)
 	cmds = append(cmds, tableCmd)
+
+	if h.userInfo.encodedToken == "" {
+		h.questionTextArea.Placeholder = "login username password"
+	} else {
+		h.questionTextArea.Placeholder = "Ask away..."
+	}
 
 	return h, tea.Batch(cmds...)
 }
@@ -258,9 +285,9 @@ func fwdError(err error) tea.Cmd {
 
 type someAnswer string
 
-func askQuestion(fermtrack client.Fermtracker, q string) tea.Cmd {
+func askQuestion(fermtrack client.Fermtracker, q string, token string) tea.Cmd {
 	return func() tea.Msg {
-		answer, err := fermtrack.AskQuestion(context.Background(), &client.FermentationQuestion{Question: q})
+		answer, err := fermtrack.AskQuestion(context.Background(), &client.FermentationQuestion{Question: q, UserToken: token})
 		if err != nil {
 			return someAnswer(err.Error())
 		}
@@ -280,7 +307,7 @@ func listFermentations(fermtrack client.Fermtracker) tea.Cmd {
 	}
 }
 
-type fermentationView struct{ ferm *client.Fermentation }
+type fermentationView struct{ *client.Fermentation }
 
 func viewFermentation(fermtrack client.Fermtracker, uuid string) tea.Cmd {
 	return func() tea.Msg {
@@ -289,5 +316,17 @@ func viewFermentation(fermtrack client.Fermtracker, uuid string) tea.Cmd {
 			return someAnswer(err.Error())
 		}
 		return fermentationView{ferm}
+	}
+}
+
+type userLogin struct{ *client.LoginResponse }
+
+func attemptLogin(fermtrack client.Fermtracker, username, password string) tea.Cmd {
+	return func() tea.Msg {
+		resp, err := fermtrack.Login(context.Background(), username, password)
+		if err != nil {
+			return someAnswer(err.Error())
+		}
+		return userLogin{resp}
 	}
 }

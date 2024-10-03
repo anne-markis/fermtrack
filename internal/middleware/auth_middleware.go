@@ -5,18 +5,20 @@ import (
 	"strings"
 
 	"github.com/anne-markis/fermtrack/internal/utils"
+	"github.com/rs/zerolog/log"
 )
 
 func AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.RequestURI == "/v1/login" || r.RequestURI == "/v1/users" {
-			// TODO dislike, unsafe, shameful
+		if r.RequestURI == "/v1/login" || (r.RequestURI == "/v1/users" && r.Method == http.MethodPost) { // TODO dislike, unsafe, shameful
+			log.Info().Msg("allowing auth bypass")
 			next.ServeHTTP(w, r)
 			return
 		}
 		authHeader := r.Header.Get("Authorization")
 		if authHeader == "" {
-			http.Error(w, "Missing Authorization header", http.StatusUnauthorized)
+			log.Error().Msg("missing authorization header")
+			http.Error(w, "missing Authorization header", http.StatusUnauthorized)
 			return
 		}
 
@@ -24,7 +26,8 @@ func AuthMiddleware(next http.Handler) http.Handler {
 
 		token, err := utils.ValidateJWT(tokenString)
 		if err != nil || !token.Valid {
-			http.Error(w, "Invalid token", http.StatusUnauthorized)
+			log.Error().Any("err", err).Msg("invalid token")
+			http.Error(w, "invalid token", http.StatusUnauthorized)
 			return
 		}
 

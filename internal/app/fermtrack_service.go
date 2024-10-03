@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/anne-markis/fermtrack/internal/app/ai"
-	"github.com/anne-markis/fermtrack/internal/app/repository"
+	repository "github.com/anne-markis/fermtrack/internal/app/domain"
 )
 
 type FermentationService struct {
@@ -46,7 +46,7 @@ func (s *FermentationService) GetFermentationAdvice(ctx context.Context, questio
 	}
 	pastNotes := make([]string, len(pastFerms))
 	for i, ferm := range pastFerms {
-		pastNotes[i] = ferm.RecipeNotes // TODO pass along
+		pastNotes[i] = ferm.RecipeNotes
 	}
 
 	result, err := s.aiClient.AskQuestion(ctx, ai.QuestionConfig{

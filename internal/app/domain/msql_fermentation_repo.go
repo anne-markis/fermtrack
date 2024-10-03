@@ -1,5 +1,5 @@
-//go:generate mockery --name=FermentationRepository --dir=internal/app/repository --output=internal/app/mocks --with-expecter
-package repository
+//go:generate mockery --name=FermentationRepository --dir=internal/app/domain --output=internal/app/mocks --with-expecter
+package domain
 
 import (
 	"database/sql"
@@ -17,7 +17,7 @@ func NewMySQLFermentationRepository(db *sql.DB) *MySQLFermentationRepository {
 }
 
 func (r *MySQLFermentationRepository) FindAll() ([]Fermentation, error) {
-	log.Info().Msg("find all")
+	log.Info().Msg("fermentations - find all")
 	rows, err := r.db.Query(`
 	SELECT
 		id
@@ -47,7 +47,7 @@ func (r *MySQLFermentationRepository) FindAll() ([]Fermentation, error) {
 }
 
 func (r *MySQLFermentationRepository) FindByUUID(uuid string) (*Fermentation, error) {
-	log.Info().Any("uuid", uuid).Msg("find by uuid")
+	log.Info().Any("uuid", uuid).Msg("fermentations - find by uuid")
 	query := `
 	SELECT
 		id

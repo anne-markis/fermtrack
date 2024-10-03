@@ -18,24 +18,38 @@ CHATGPT_KEY=your-key
 To run, simply run main directly and build and run.
 ```
 % go mod vendor
-% go run main.go
+% make start
 ```
-OR
+ 
+To stop
 ```
-% go build
-% ./fermtrack
+% make stop
 ```
 
-If you want to test out some functionality but don't have an openAI token or don't want to use credits, start the process with the `cheap` arg. This will return a hard coded dummy answer for all questions.
+To view logs
+```
+% make logs
+```
+
+
+### Creating a user
+Create a user locally by starting the server and running the following (substituting the username/pass as you like):
 
 ```
-% ./fermtrack cheap
+curl -X POST http://localhost:8080/v1/users \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "cooluser",
+    "password": "cool123"
+  }'
 ```
+
+This is required to use the bubbletea cli in `cli` dir.
 
 
 ### Migrations
 
-Migrations are by goose.
+Migrations are by goose and will run upon server startup automatically.
 
 ```
 % brew install goose # or follow instructions here: https://github.com/pressly/goose
@@ -48,7 +62,6 @@ Migrations are by goose.
 * Add filtering for GET /v1/fermentations
 * Edit/Create fermentation
 * Auth
-* Better test coverage
 * Put on server
 * Comments
 

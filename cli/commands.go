@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"strings"
 )
 
@@ -10,6 +11,7 @@ const helpText = `options:
 	view [UID] 	View specific project notes
 	edit [UID]	Edit specific project notes
 	clear		Clear screen and any selections
+	login		Login to the system
 	Or simply ask the wine wizard anything you like!
 `
 
@@ -19,6 +21,7 @@ const (
 	ClearList         = "clear"
 	ViewFermentation  = "view"
 	EditFermentation  = "edit"
+	Login             = "login"
 )
 
 type UserCommand struct {
@@ -27,7 +30,7 @@ type UserCommand struct {
 }
 
 func GetCommand(rawInput string) (UserCommand, error) {
-	inputs := strings.Split(rawInput, " ")
+	inputs := strings.Split(rawInput, " ") // Note: this is pretty brittle. Stronger tokenization would be better
 
 	if len(inputs) == 0 {
 		return UserCommand{Command: AskWineWizard}, nil
@@ -44,8 +47,14 @@ func GetCommand(rawInput string) (UserCommand, error) {
 		return UserCommand{Command: ClearList}, nil
 	case ViewFermentation:
 		return UserCommand{Command: ViewFermentation}, nil
-	case "edit":
+	case EditFermentation:
 		return UserCommand{Command: EditFermentation}, nil
+	case Login:
+		cmd := UserCommand{Command: Login}
+		if len(inputs) != 3 {
+			return cmd, fmt.Errorf("usage: login username password")
+		}
+		return cmd, nil
 	}
 
 	return UserCommand{Command: AskWineWizard}, nil

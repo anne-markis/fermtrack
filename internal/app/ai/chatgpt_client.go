@@ -36,8 +36,11 @@ type OpenAIClient struct {
 
 func InitClient() (AIClient, error) {
 	if os.Getenv("CHATGPT_KEY") == "" {
-		return nil, fmt.Errorf("no chatgpt key found in env")
+		log.Info().Msg("using dummy AI client")
+		dummyClient := DummyClient{}
+		return dummyClient, nil
 	}
+	log.Info().Msg("using chat gpt AI client")
 	client := openai.NewClient(os.Getenv("CHATGPT_KEY"))
 	c := OpenAIClient{
 		Client: client,

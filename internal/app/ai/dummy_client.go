@@ -6,7 +6,10 @@ import (
 	"time"
 )
 
-func AskQuestion(ctx context.Context, qCfg QuestionConfig) (string, error) {
+type DummyClient struct {
+}
+
+func (d DummyClient) AskQuestion(ctx context.Context, qCfg QuestionConfig) (string, error) {
 	question := strings.Join(strings.Fields(qCfg.Question), "")
 	if question == "" {
 		return "Ask me, the wine wizard, anything you like.", nil

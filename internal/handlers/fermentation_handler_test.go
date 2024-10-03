@@ -7,8 +7,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	repository "github.com/anne-markis/fermtrack/internal/app/domain"
 	"github.com/anne-markis/fermtrack/internal/app/mocks"
-	"github.com/anne-markis/fermtrack/internal/app/repository"
 	"github.com/google/uuid"
 
 	"github.com/gorilla/mux"

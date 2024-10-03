@@ -41,6 +41,9 @@ github.com/erikgeiser/coninput
 # github.com/go-sql-driver/mysql v1.8.1
 ## explicit; go 1.18
 github.com/go-sql-driver/mysql
+# github.com/golang-jwt/jwt/v5 v5.2.1
+## explicit; go 1.18
+github.com/golang-jwt/jwt/v5
 # github.com/google/uuid v1.6.0
 ## explicit
 github.com/google/uuid
@@ -105,6 +108,10 @@ github.com/stretchr/objx
 github.com/stretchr/testify/assert
 github.com/stretchr/testify/mock
 github.com/stretchr/testify/require
+# golang.org/x/crypto v0.27.0
+## explicit; go 1.20
+golang.org/x/crypto/bcrypt
+golang.org/x/crypto/blowfish
 # golang.org/x/sync v0.8.0
 ## explicit; go 1.18
 golang.org/x/sync/errgroup

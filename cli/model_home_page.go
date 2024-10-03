@@ -36,6 +36,7 @@ type homePage struct {
 	fermentationsTable table.Model
 	additionalHelp     string
 	userInfo           userInfo
+	ctx                context.Context
 	err                error
 }
 
@@ -46,6 +47,7 @@ func NewHomePage(fermTracker client.Fermtracker) homePage {
 		thinkingSpinner:    thinkingSpinner(),
 		fermTracker:        fermTracker,
 		fermentationsTable: fermentationsTable([]client.Fermentation{}),
+		ctx:                context.Background(),
 		err:                nil, // TODO use this
 	}
 }
@@ -116,16 +118,16 @@ func (h homePage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			switch systemCmd.Command {
 			case AskWineWizard:
-				cmds = append(cmds, askQuestion(h.fermTracker, input, h.userInfo.encodedToken), setThinking(true))
+				cmds = append(cmds, h.askQuestion(input, h.userInfo.encodedToken), setThinking(true)) // TOKEN
 			case ListFermentations:
-				cmds = append(cmds, listFermentations(h.fermTracker), setThinking(true))
+				cmds = append(cmds, h.listFermentations(), setThinking(true))
 			case ClearList:
 				h.responseViewPort.SetContent(responderStyle.Render(fmt.Sprintf("🍷🧙:")))
 				h.fermentationsTable = fermentationsTable([]client.Fermentation{})
 			case ViewFermentation:
 				if h.fermentationsTable.SelectedRow() != nil {
 					uuid := h.fermentationsTable.SelectedRow()[0] // uuid col is first col
-					cmds = append(cmds, viewFermentation(h.fermTracker, uuid), setThinking(true))
+					cmds = append(cmds, h.viewFermentation(uuid), setThinking(true))
 				} else {
 					h.responseViewPort.SetContent(responderStyle.Render(fmt.Sprintf("🍷🧙: Try using 'list' and selecting a row first!")))
 				}
@@ -136,7 +138,7 @@ func (h homePage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				userInput := strings.Split(input, " ")
 				user := userInput[1]
 				pass := userInput[2]
-				cmds = append(cmds, attemptLogin(h.fermTracker, user, pass), setThinking(true))
+				cmds = append(cmds, h.attemptLogin(user, pass), setThinking(true))
 			default:
 				h.responseViewPort.SetContent(responderStyle.Render(systemCmd.Extra)) // help text
 			}
@@ -174,6 +176,9 @@ func (h homePage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			username:     msg.Username,
 			uuid:         msg.UUID,
 		}
+
+		h.ctx = context.WithValue(h.ctx, client.ContextKeyJWT, h.userInfo.encodedToken)
+
 		h.responseViewPort.SetContent(responderStyle.Render("🍷🧙: Login successful! Ask me anything or try `help`"))
 		cmds = append(cmds, setThinking(false))
 	case errMsg:
@@ -285,9 +290,9 @@ func fwdError(err error) tea.Cmd {
 
 type someAnswer string
 
-func askQuestion(fermtrack client.Fermtracker, q string, token string) tea.Cmd {
+func (h homePage) askQuestion(q string, token string) tea.Cmd {
 	return func() tea.Msg {
-		answer, err := fermtrack.AskQuestion(context.Background(), &client.FermentationQuestion{Question: q, UserToken: token})
+		answer, err := h.fermTracker.AskQuestion(h.ctx, &client.FermentationQuestion{Question: q})
 		if err != nil {
 			return someAnswer(err.Error())
 		}
@@ -297,9 +302,9 @@ func askQuestion(fermtrack client.Fermtracker, q string, token string) tea.Cmd {
 
 type fermentationList struct{ ferms []client.Fermentation }
 
-func listFermentations(fermtrack client.Fermtracker) tea.Cmd {
+func (h homePage) listFermentations() tea.Cmd {
 	return func() tea.Msg {
-		ferms, err := fermtrack.ListFermentations(context.Background())
+		ferms, err := h.fermTracker.ListFermentations(h.ctx)
 		if err != nil {
 			return someAnswer(err.Error())
 		}
@@ -309,9 +314,9 @@ func listFermentations(fermtrack client.Fermtracker) tea.Cmd {
 
 type fermentationView struct{ *client.Fermentation }
 
-func viewFermentation(fermtrack client.Fermtracker, uuid string) tea.Cmd {
+func (h homePage) viewFermentation(uuid string) tea.Cmd {
 	return func() tea.Msg {
-		ferm, err := fermtrack.GetFermentation(context.Background(), uuid)
+		ferm, err := h.fermTracker.GetFermentation(h.ctx, uuid)
 		if err != nil {
 			return someAnswer(err.Error())
 		}
@@ -321,9 +326,9 @@ func viewFermentation(fermtrack client.Fermtracker, uuid string) tea.Cmd {
 
 type userLogin struct{ *client.LoginResponse }
 
-func attemptLogin(fermtrack client.Fermtracker, username, password string) tea.Cmd {
+func (h homePage) attemptLogin(username, password string) tea.Cmd {
 	return func() tea.Msg {
-		resp, err := fermtrack.Login(context.Background(), username, password)
+		resp, err := h.fermTracker.Login(h.ctx, username, password)
 		if err != nil {
 			return someAnswer(err.Error())
 		}

@@ -24,6 +24,11 @@ func NewFermentationClient(baseURL string) *FermentationClient {
 	}
 }
 
+// Setting jwt value in context
+type jwtKey struct{}
+
+var ContextKeyJWT = jwtKey{}
+
 type Fermentation struct {
 	ID           int        `json:"id"`
 	UUID         string     `json:"uuid"`
@@ -61,8 +66,7 @@ type Fermtracker interface {
 }
 
 type FermentationQuestion struct {
-	Question  string `json:"question"`
-	UserToken string `json:"-"` // TODO not best place for this
+	Question string `json:"question"`
 }
 type FermentationAdvice struct {
 	Answer string `json:"answer"`
@@ -124,7 +128,7 @@ func (fc *FermentationClient) AskQuestion(ctx context.Context, question *Ferment
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", question.UserToken))
+	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", ctx.Value(ContextKeyJWT)))
 
 	resp, err := fc.client.Do(req)
 	if err != nil {
@@ -145,12 +149,19 @@ func (fc *FermentationClient) AskQuestion(ctx context.Context, question *Ferment
 	return &answer, nil
 }
 
-// TODO need token
 func (fc *FermentationClient) ListFermentations(ctx context.Context) ([]Fermentation, error) {
 	url := fmt.Sprintf("%s/v1/fermentations", fc.baseURL)
-	resp, err := http.Get(url)
+
+	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create request: %v", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", ctx.Value(ContextKeyJWT)))
+
+	resp, err := fc.client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to ask question: %v", err)
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
@@ -166,18 +177,20 @@ func (fc *FermentationClient) ListFermentations(ctx context.Context) ([]Fermenta
 	return fermentations, nil
 }
 
-// TODO need token
 func (fc *FermentationClient) GetFermentation(ctx context.Context, uuid string) (*Fermentation, error) {
 	url := fmt.Sprintf("%s/v1/fermentations/%s", fc.baseURL, uuid)
-	resp, err := http.Get(url)
+	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create request: %v", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", ctx.Value(ContextKeyJWT)))
+
+	resp, err := fc.client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to ask question: %v", err)
 	}
 	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
-		return nil, fmt.Errorf("error response: %s", body)
-	}
 
 	var fermentation Fermentation
 	if err := json.NewDecoder(resp.Body).Decode(&fermentation); err != nil {

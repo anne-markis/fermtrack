@@ -5,7 +5,7 @@ import "time"
 type User struct {
 	ID        int        `json:"id"`
 	UUID      string     `json:"uuid"`
-	Username  string     `json:"username"`
+	Username  string     `json:"username"` // TODO no unique constraint
 	Password  string     `json:"-"`
 	CreatedAt time.Time  `json:"created_at"`
 	UpdatedAt *time.Time `json:"updated_at"`

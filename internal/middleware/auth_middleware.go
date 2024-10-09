@@ -8,13 +8,9 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+// AuthMiddleware Enforces a valid JWT token in the Authorization header
 func AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.RequestURI == "/v1/login" || (r.RequestURI == "/v1/users" && r.Method == http.MethodPost) { // TODO dislike, unsafe, shameful
-			log.Info().Msg("allowing auth bypass")
-			next.ServeHTTP(w, r)
-			return
-		}
 		authHeader := r.Header.Get("Authorization")
 		if authHeader == "" {
 			log.Error().Msg("missing authorization header")

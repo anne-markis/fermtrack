@@ -17,6 +17,7 @@ func NewUserHandler(repo domain.UserRepository) *UserHandler {
 	return &UserHandler{userRepo: repo}
 }
 
+// GetUser retrieves a user by the uuid passed in on the request
 func (u *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	uuid := vars["uuid"]
@@ -33,6 +34,7 @@ type NewUserRequest struct {
 	Password string `json:"password"`
 }
 
+// CreateUser creates a new user
 func (u *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	var newUserReq NewUserRequest
 	if err := json.NewDecoder(r.Body).Decode(&newUserReq); err != nil {

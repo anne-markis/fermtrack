@@ -38,7 +38,14 @@ func (r *MySQLFermentationRepository) FindAll() ([]Fermentation, error) {
 	var fermentations []Fermentation
 	for rows.Next() {
 		var fermentation Fermentation
-		if err := rows.Scan(&fermentation.ID, &fermentation.UUID, &fermentation.Nickname, &fermentation.StartAt, &fermentation.BottledAt, &fermentation.RecipeNotes, &fermentation.TastingNotes); err != nil {
+		if err := rows.Scan(
+			&fermentation.ID,
+			&fermentation.UUID,
+			&fermentation.Nickname,
+			&fermentation.StartAt,
+			&fermentation.BottledAt,
+			&fermentation.RecipeNotes,
+			&fermentation.TastingNotes); err != nil {
 			return nil, err
 		}
 		fermentations = append(fermentations, fermentation)

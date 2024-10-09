@@ -24,14 +24,17 @@ func NewFermentationService(repo repository.FermentationRepository, aiClent ai.A
 	return &FermentationService{repo: repo, aiClient: aiClent}
 }
 
+// GetFermentations gets all fermentations
 func (s *FermentationService) GetFermentations(ctx context.Context) ([]repository.Fermentation, error) {
 	return s.repo.FindAll()
 }
 
+// GetFermentationByUUID gets a single fermentation by uuid
 func (s *FermentationService) GetFermentationByUUID(ctx context.Context, uuid string) (*repository.Fermentation, error) {
 	return s.repo.FindByUUID(uuid)
 }
 
+// GetFermentationAdvice forwards a generic question to an LLM
 func (s *FermentationService) GetFermentationAdvice(ctx context.Context, question string) (string, error) {
 	question = strings.Join(strings.Fields(question), "")
 	if question == "" {

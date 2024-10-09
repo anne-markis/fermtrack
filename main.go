@@ -15,7 +15,6 @@ import (
 	"github.com/anne-markis/fermtrack/internal/app/domain"
 	"github.com/anne-markis/fermtrack/internal/config"
 	"github.com/anne-markis/fermtrack/internal/handlers"
-	"github.com/anne-markis/fermtrack/internal/middleware"
 
 	"github.com/anne-markis/fermtrack/internal/router"
 
@@ -80,10 +79,6 @@ func main() {
 	userHandler := handlers.NewUserHandler(userRepo)
 
 	r := router.NewRouter(fermHandler, authHandler, userHandler)
-
-	// middleware
-	r.Use(middleware.LoggingMiddleware) // log route
-	r.Use(middleware.AuthMiddleware)    // validate jwt TODO auth optional on some routes
 
 	srv := &http.Server{
 		Addr:         fmt.Sprintf("0.0.0.0:%s", cfg.Server.Port),

@@ -18,6 +18,7 @@ func NewFermentationHandler(service app.FermentationTrackService) *FermentationH
 	return &FermentationHandler{service}
 }
 
+// GetFermentations gets a list of all fermentations
 func (h *FermentationHandler) GetFermentations(w http.ResponseWriter, r *http.Request) {
 	fermentations, err := h.service.GetFermentations(r.Context())
 	if err != nil {
@@ -27,6 +28,7 @@ func (h *FermentationHandler) GetFermentations(w http.ResponseWriter, r *http.Re
 	json.NewEncoder(w).Encode(fermentations)
 }
 
+// GetFermentation gets information on a particular fermentation
 func (h *FermentationHandler) GetFermentation(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	uuid := vars["uuid"]
@@ -45,6 +47,7 @@ type FermentationAdvice struct {
 	Answer string `json:"answer"`
 }
 
+// GetFermentationAdvice passes a generic question to an LLM and gets a response
 func (h *FermentationHandler) GetFermentationAdvice(w http.ResponseWriter, r *http.Request) {
 	var question FermentationQuestion
 	if err := json.NewDecoder(r.Body).Decode(&question); err != nil {

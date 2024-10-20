@@ -6,15 +6,14 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/jmoiron/sqlx"
 	"github.com/rs/zerolog/log"
 )
 
 type MySQLFermentationRepository struct {
-	db *sqlx.DB
+	db *sql.DB
 }
 
-func NewMySQLFermentationRepository(db *sqlx.DB) *MySQLFermentationRepository {
+func NewMySQLFermentationRepository(db *sql.DB) *MySQLFermentationRepository {
 	return &MySQLFermentationRepository{db}
 }
 

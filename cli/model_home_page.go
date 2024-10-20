@@ -212,7 +212,7 @@ func (h homePage) helpView() string {
 }
 
 func chatViewport() viewport.Model {
-	viewPort := viewport.New(60, height)
+	viewPort := viewport.New(65, height)
 	viewPort.SetContent(`🍷🧙 Ask me, the wine wizard, anything you like.`)
 	return viewPort
 }

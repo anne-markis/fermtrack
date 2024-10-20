@@ -9,6 +9,7 @@ import (
 	"github.com/charmbracelet/bubbles/spinner"
 	"github.com/charmbracelet/bubbles/table"
 	"github.com/charmbracelet/bubbles/textarea"
+	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -63,7 +64,7 @@ func StartCLI(ctx context.Context, fermTracker client.Fermtracker) error {
 }
 
 func (h homePage) Init() tea.Cmd {
-	return tea.Batch(textarea.Blink, h.thinkingSpinner.Tick)
+	return tea.Batch(textarea.Blink, h.thinkingSpinner.Tick, textinput.Blink)
 }
 
 func (h homePage) View() string {
@@ -71,11 +72,13 @@ func (h homePage) View() string {
 	if h.isThinking {
 		spinner = h.thinkingSpinner.View()
 	}
+
 	title := FermTrack_ANSIShadow()
-	view := title + "\n" +
+
+	return title + "\n" +
 		lipgloss.JoinHorizontal(lipgloss.Top, h.questionTextArea.View(), spinner, h.responseViewPort.View(), h.fermentationsTable.View()) +
 		h.helpView()
-	return view
+
 }
 
 func (h homePage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -118,7 +121,7 @@ func (h homePage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			switch systemCmd.Command {
 			case AskWineWizard:
-				cmds = append(cmds, h.askQuestion(input, h.userInfo.encodedToken), setThinking(true)) // TOKEN
+				cmds = append(cmds, h.askQuestion(input), setThinking(true))
 			case ListFermentations:
 				cmds = append(cmds, h.listFermentations(), setThinking(true))
 			case ClearList:
@@ -132,12 +135,27 @@ func (h homePage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					h.responseViewPort.SetContent(responderStyle.Render(fmt.Sprintf("🍷🧙: Try using 'list' and selecting a row first!")))
 				}
 			case EditFermentation:
-				h.responseViewPort.SetContent(responderStyle.Render(fmt.Sprintf("🍷🧙: Unimplemented! %s", BubblyGlass())))
-				h.responseViewPort.GotoTop()
+				if h.fermentationsTable.SelectedRow() != nil {
+					// uuid := h.fermentationsTable.SelectedRow()[0] // uuid col is first col // TODO use https://github.com/charmbracelet/huh
+					// cmds = append(cmds, h.startEditFermentation(uuid), setThinking(true))
+					h.responseViewPort.SetContent(responderStyle.Render(fmt.Sprintf("🍷🧙: Unimplemented! %s", BubblyGlass())))
+					h.responseViewPort.GotoTop()
+				} else {
+					h.responseViewPort.SetContent(responderStyle.Render(fmt.Sprintf("🍷🧙: Try using 'list' and selecting a row first!")))
+				}
 			case Login:
+				var user string
+				var pass string
 				userInput := strings.Split(input, " ")
-				user := userInput[1]
-				pass := userInput[2]
+				if len(userInput) == 1 {
+					// easy pass for meee
+					user = "cooluser"
+					pass = "cool123"
+				} else {
+					user = userInput[1]
+					pass = userInput[2]
+				}
+
 				cmds = append(cmds, h.attemptLogin(user, pass), setThinking(true))
 			default:
 				h.responseViewPort.SetContent(responderStyle.Render(systemCmd.Extra)) // help text
@@ -170,6 +188,9 @@ func (h homePage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		h.responseViewPort.SetContent(responderStyle.Render(msg.ToString()))
 		h.responseViewPort.GotoTop()
 		cmds = append(cmds, setThinking(false))
+	case fermentationStartEdit:
+		// TODO
+		cmds = append(cmds, setThinking(false))
 	case userLogin:
 		h.userInfo = userInfo{
 			encodedToken: msg.Token,
@@ -194,7 +215,7 @@ func (h homePage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	cmds = append(cmds, tableCmd)
 
 	if h.userInfo.encodedToken == "" {
-		h.questionTextArea.Placeholder = "login username password"
+		h.questionTextArea.Placeholder = "login username password" // TODO: hit enter to bypass with default username/pass for ease of use
 	} else {
 		h.questionTextArea.Placeholder = "Ask away..."
 	}
@@ -290,7 +311,7 @@ func fwdError(err error) tea.Cmd {
 
 type someAnswer string
 
-func (h homePage) askQuestion(q string, token string) tea.Cmd {
+func (h homePage) askQuestion(q string) tea.Cmd {
 	return func() tea.Msg {
 		answer, err := h.fermTracker.AskQuestion(h.ctx, &client.FermentationQuestion{Question: q})
 		if err != nil {
@@ -321,6 +342,18 @@ func (h homePage) viewFermentation(uuid string) tea.Cmd {
 			return someAnswer(err.Error())
 		}
 		return fermentationView{ferm}
+	}
+}
+
+type fermentationStartEdit struct{ *client.Fermentation }
+
+func (h homePage) startEditFermentation(uuid string) tea.Cmd { // TODO
+	return func() tea.Msg {
+		ferm, err := h.fermTracker.GetFermentation(h.ctx, uuid)
+		if err != nil {
+			return someAnswer(err.Error())
+		}
+		return fermentationStartEdit{ferm}
 	}
 }
 

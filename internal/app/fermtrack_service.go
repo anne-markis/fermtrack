@@ -3,6 +3,7 @@ package app
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/anne-markis/fermtrack/internal/app/ai"
@@ -18,6 +19,7 @@ type FermentationTrackService interface {
 	GetFermentations(ctx context.Context) ([]repository.Fermentation, error)
 	GetFermentationByUUID(ctx context.Context, uuid string) (*repository.Fermentation, error)
 	GetFermentationAdvice(ctx context.Context, question string) (string, error)
+	UpdateFermentation(ctx context.Context, uuid string, ferm repository.Fermentation) error
 }
 
 func NewFermentationService(repo repository.FermentationRepository, aiClent ai.AIClient) *FermentationService {
@@ -60,4 +62,26 @@ func (s *FermentationService) GetFermentationAdvice(ctx context.Context, questio
 		return "", err
 	}
 	return result, nil
+}
+
+func (s *FermentationService) UpdateFermentation(ctx context.Context, uuid string, newFerm repository.Fermentation) error {
+	existingFerm, err := s.repo.FindByUUID(uuid)
+	if err != nil {
+		return err
+	}
+	if existingFerm == nil || existingFerm.IsZero() {
+		return fmt.Errorf("fermentation does not exist; cannot update")
+	}
+
+	if !newFerm.BottledAt.IsZero() {
+		existingFerm.BottledAt = newFerm.BottledAt
+	}
+	if newFerm.Nickname != "" {
+		existingFerm.Nickname = newFerm.Nickname
+	}
+
+	if newFerm.TastingNotes != nil {
+		existingFerm.TastingNotes = newFerm.TastingNotes
+	}
+	return s.repo.Update(existingFerm)
 }

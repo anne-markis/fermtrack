@@ -16,4 +16,9 @@ type Fermentation struct {
 type FermentationRepository interface {
 	FindAll() ([]Fermentation, error)
 	FindByUUID(uuid string) (*Fermentation, error)
+	Update(ferm *Fermentation) error
+}
+
+func (f Fermentation) IsZero() bool {
+	return f.ID == 0 && f.UUID == ""
 }

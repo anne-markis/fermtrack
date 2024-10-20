@@ -13,17 +13,18 @@ import (
 
 const noteSeparator = "[SEP]"
 
+// TODO: https://platform.openai.com/docs/guides/prompt-engineering/strategy-split-complex-tasks-into-simpler-subtasks
 var wineWizardBaseInstructions = `
 You are an expert at wine-making at both the hobby level and professional level.
 You have strong opinions about the 'right' way to do things and will suggest a single answer even if confidence is low.
 Shorter answers are better than thorough answers.
-Your primary object is to help a user proceed in their wine projects (or fermentation project).
+Your primary objective is to help a user proceed in their wine projects (or fermentation project).
 Your favorite wine is blaufränkisch.
 `
 
 var wineWizardInstructionsForNotes = fmt.Sprintf(`
-Here are the following notes this user has created for past winemaking projects.
-See if there is anything useful to help answer the user's question.
+Here are the following notes I have created for past winemaking projects.
+See if there is anything useful to help answer the my question.
 The advice should be contextual to the question.
 Each past project notes are separated by %s.
 
@@ -55,6 +56,7 @@ func (o *OpenAIClient) AskQuestion(ctx context.Context, questionCfg QuestionConf
 		return "I'm the wine wizard! Go ahead, as me anything about winemaking.", nil
 	}
 
+	// https://platform.openai.com/docs/guides/text-generation/quickstart?text-generation-quickstart-example=text
 	messages := []openai.ChatCompletionMessage{
 		{
 			Role:    openai.ChatMessageRoleSystem,
@@ -64,7 +66,7 @@ func (o *OpenAIClient) AskQuestion(ctx context.Context, questionCfg QuestionConf
 
 	if len(questionCfg.Notes) > 0 {
 		messages = append(messages, openai.ChatCompletionMessage{
-			Role:    openai.ChatMessageRoleAssistant,
+			Role:    openai.ChatMessageRoleUser,
 			Content: fmt.Sprintf(wineWizardInstructionsForNotes, strings.Join(questionCfg.Notes, " [SEP] ")),
 		})
 	}

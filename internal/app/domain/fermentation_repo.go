@@ -4,15 +4,17 @@ package domain
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/rs/zerolog/log"
 )
 
 type MySQLFermentationRepository struct {
-	db *sql.DB
+	db *sqlx.DB
 }
 
-func NewMySQLFermentationRepository(db *sql.DB) *MySQLFermentationRepository {
+func NewMySQLFermentationRepository(db *sqlx.DB) *MySQLFermentationRepository {
 	return &MySQLFermentationRepository{db}
 }
 
@@ -84,4 +86,23 @@ func (r *MySQLFermentationRepository) FindByUUID(uuid string) (*Fermentation, er
 	}
 
 	return &fermentation, nil
+}
+
+func (r *MySQLFermentationRepository) Update(ferm *Fermentation) error {
+	if ferm == nil || ferm.IsZero() {
+		return fmt.Errorf("cannot update non existent fermentation")
+	}
+	query := `
+		update fermentation set
+			nickname = ?
+			, bottled_at = ?
+			, tasting_notes = ?
+		where uuid = ?
+	`
+
+	_, err := r.db.Exec(query, ferm.Nickname, ferm.BottledAt, ferm.TastingNotes, ferm.UUID)
+	if err != nil {
+		return fmt.Errorf("failed to update fermentation: %v", err)
+	}
+	return nil
 }

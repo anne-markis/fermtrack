@@ -3,7 +3,7 @@
 package mocks
 
 import (
-	repository "github.com/anne-markis/fermtrack/internal/app/domain"
+	domain "github.com/anne-markis/fermtrack/internal/app/domain"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -21,23 +21,23 @@ func (_m *FermentationRepository) EXPECT() *FermentationRepository_Expecter {
 }
 
 // FindAll provides a mock function with given fields:
-func (_m *FermentationRepository) FindAll() ([]repository.Fermentation, error) {
+func (_m *FermentationRepository) FindAll() ([]domain.Fermentation, error) {
 	ret := _m.Called()
 
 	if len(ret) == 0 {
 		panic("no return value specified for FindAll")
 	}
 
-	var r0 []repository.Fermentation
+	var r0 []domain.Fermentation
 	var r1 error
-	if rf, ok := ret.Get(0).(func() ([]repository.Fermentation, error)); ok {
+	if rf, ok := ret.Get(0).(func() ([]domain.Fermentation, error)); ok {
 		return rf()
 	}
-	if rf, ok := ret.Get(0).(func() []repository.Fermentation); ok {
+	if rf, ok := ret.Get(0).(func() []domain.Fermentation); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]repository.Fermentation)
+			r0 = ret.Get(0).([]domain.Fermentation)
 		}
 	}
 
@@ -67,34 +67,34 @@ func (_c *FermentationRepository_FindAll_Call) Run(run func()) *FermentationRepo
 	return _c
 }
 
-func (_c *FermentationRepository_FindAll_Call) Return(_a0 []repository.Fermentation, _a1 error) *FermentationRepository_FindAll_Call {
+func (_c *FermentationRepository_FindAll_Call) Return(_a0 []domain.Fermentation, _a1 error) *FermentationRepository_FindAll_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *FermentationRepository_FindAll_Call) RunAndReturn(run func() ([]repository.Fermentation, error)) *FermentationRepository_FindAll_Call {
+func (_c *FermentationRepository_FindAll_Call) RunAndReturn(run func() ([]domain.Fermentation, error)) *FermentationRepository_FindAll_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // FindByUUID provides a mock function with given fields: uuid
-func (_m *FermentationRepository) FindByUUID(uuid string) (*repository.Fermentation, error) {
+func (_m *FermentationRepository) FindByUUID(uuid string) (*domain.Fermentation, error) {
 	ret := _m.Called(uuid)
 
 	if len(ret) == 0 {
 		panic("no return value specified for FindByUUID")
 	}
 
-	var r0 *repository.Fermentation
+	var r0 *domain.Fermentation
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string) (*repository.Fermentation, error)); ok {
+	if rf, ok := ret.Get(0).(func(string) (*domain.Fermentation, error)); ok {
 		return rf(uuid)
 	}
-	if rf, ok := ret.Get(0).(func(string) *repository.Fermentation); ok {
+	if rf, ok := ret.Get(0).(func(string) *domain.Fermentation); ok {
 		r0 = rf(uuid)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*repository.Fermentation)
+			r0 = ret.Get(0).(*domain.Fermentation)
 		}
 	}
 
@@ -125,12 +125,58 @@ func (_c *FermentationRepository_FindByUUID_Call) Run(run func(uuid string)) *Fe
 	return _c
 }
 
-func (_c *FermentationRepository_FindByUUID_Call) Return(_a0 *repository.Fermentation, _a1 error) *FermentationRepository_FindByUUID_Call {
+func (_c *FermentationRepository_FindByUUID_Call) Return(_a0 *domain.Fermentation, _a1 error) *FermentationRepository_FindByUUID_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *FermentationRepository_FindByUUID_Call) RunAndReturn(run func(string) (*repository.Fermentation, error)) *FermentationRepository_FindByUUID_Call {
+func (_c *FermentationRepository_FindByUUID_Call) RunAndReturn(run func(string) (*domain.Fermentation, error)) *FermentationRepository_FindByUUID_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// Update provides a mock function with given fields: ferm
+func (_m *FermentationRepository) Update(ferm *domain.Fermentation) error {
+	ret := _m.Called(ferm)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Update")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*domain.Fermentation) error); ok {
+		r0 = rf(ferm)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// FermentationRepository_Update_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Update'
+type FermentationRepository_Update_Call struct {
+	*mock.Call
+}
+
+// Update is a helper method to define mock.On call
+//   - ferm *domain.Fermentation
+func (_e *FermentationRepository_Expecter) Update(ferm interface{}) *FermentationRepository_Update_Call {
+	return &FermentationRepository_Update_Call{Call: _e.mock.On("Update", ferm)}
+}
+
+func (_c *FermentationRepository_Update_Call) Run(run func(ferm *domain.Fermentation)) *FermentationRepository_Update_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(*domain.Fermentation))
+	})
+	return _c
+}
+
+func (_c *FermentationRepository_Update_Call) Return(_a0 error) *FermentationRepository_Update_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *FermentationRepository_Update_Call) RunAndReturn(run func(*domain.Fermentation) error) *FermentationRepository_Update_Call {
 	_c.Call.Return(run)
 	return _c
 }

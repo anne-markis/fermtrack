@@ -23,7 +23,7 @@ func NewAuthService(userRepo domain.UserRepository) *AuthService {
 
 func (a *AuthService) Login(username, password string) (string, error) {
 	user, err := a.userRepo.FindByUsername(username)
-	if err != nil || user == nil {
+	if err != nil || user.IsZero() {
 		return "", errors.New("invalid username or password")
 	}
 

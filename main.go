@@ -22,9 +22,8 @@ import (
 
 	"github.com/joho/godotenv"
 
-	"database/sql"
-
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/jmoiron/sqlx"
 	"github.com/pressly/goose"
 )
 
@@ -38,7 +37,7 @@ func main() {
 		cfg.Database.Host,
 		cfg.Database.Port,
 		cfg.Database.Name)
-	db, err := sql.Open("mysql", dsn)
+	db, err := sqlx.Connect("mysql", dsn)
 	if err != nil {
 		log.Error().Msg(err.Error())
 		return
@@ -58,7 +57,7 @@ func main() {
 	if err := goose.SetDialect("mysql"); err != nil {
 		log.Error().Err(err).Msg("Failed to set dialect")
 	}
-	if err := goose.Up(db, os.Getenv("GOOSE_MIGRATION_DIR")); err != nil {
+	if err := goose.Up(db.DB, os.Getenv("GOOSE_MIGRATION_DIR")); err != nil {
 		log.Error().Err(err).Msg("Error running migrations")
 		return
 	}

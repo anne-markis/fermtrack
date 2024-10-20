@@ -5,14 +5,15 @@ import (
 	"errors"
 
 	"github.com/google/uuid"
+	"github.com/jmoiron/sqlx"
 	"github.com/rs/zerolog/log"
 )
 
 type MySQLUserRepository struct {
-	db *sql.DB
+	db *sqlx.DB
 }
 
-func NewMySQLUserRepository(db *sql.DB) *MySQLUserRepository {
+func NewMySQLUserRepository(db *sqlx.DB) *MySQLUserRepository {
 	return &MySQLUserRepository{db}
 }
 

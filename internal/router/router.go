@@ -29,6 +29,7 @@ func NewRouter(
 	protectedRouter.HandleFunc("/v1/fermentations/advice", fermentationHandler.GetFermentationAdvice).Methods("POST")
 	protectedRouter.HandleFunc("/v1/fermentations", fermentationHandler.GetFermentations).Methods("GET")
 	protectedRouter.HandleFunc("/v1/fermentations/{uuid}", fermentationHandler.GetFermentation).Methods("GET")
+	protectedRouter.HandleFunc("/v1/fermentations/{uuid}", fermentationHandler.UpdateFermentation).Methods("PUT")
 
 	// middleware
 	r.Use(middleware.LoggingMiddleware) // all routes get logging

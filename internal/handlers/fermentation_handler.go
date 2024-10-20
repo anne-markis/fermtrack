@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/anne-markis/fermtrack/internal/app"
+	"github.com/anne-markis/fermtrack/internal/app/domain"
 
 	"github.com/gorilla/mux"
 )
@@ -38,6 +39,24 @@ func (h *FermentationHandler) GetFermentation(w http.ResponseWriter, r *http.Req
 		return
 	}
 	json.NewEncoder(w).Encode(fermentation)
+}
+
+func (h *FermentationHandler) UpdateFermentation(w http.ResponseWriter, r *http.Request) {
+	var fermentation domain.Fermentation
+	if err := json.NewDecoder(r.Body).Decode(&fermentation); err != nil {
+		http.Error(w, "Invalid request payload", http.StatusBadRequest)
+		return
+	}
+
+	vars := mux.Vars(r)
+	uuid := vars["uuid"]
+
+	if err := h.service.UpdateFermentation(r.Context(), uuid, fermentation); err != nil {
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }
 
 type FermentationQuestion struct {

@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"flag"
 	"fmt"
 
@@ -21,8 +22,6 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/joho/godotenv"
-
-	"database/sql"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/pressly/goose"

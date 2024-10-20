@@ -5,7 +5,7 @@ package mocks
 import (
 	context "context"
 
-	repository "github.com/anne-markis/fermtrack/internal/app/domain"
+	domain "github.com/anne-markis/fermtrack/internal/app/domain"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -80,23 +80,23 @@ func (_c *FermentationTrackService_GetFermentationAdvice_Call) RunAndReturn(run 
 }
 
 // GetFermentationByUUID provides a mock function with given fields: ctx, uuid
-func (_m *FermentationTrackService) GetFermentationByUUID(ctx context.Context, uuid string) (*repository.Fermentation, error) {
+func (_m *FermentationTrackService) GetFermentationByUUID(ctx context.Context, uuid string) (*domain.Fermentation, error) {
 	ret := _m.Called(ctx, uuid)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetFermentationByUUID")
 	}
 
-	var r0 *repository.Fermentation
+	var r0 *domain.Fermentation
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) (*repository.Fermentation, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string) (*domain.Fermentation, error)); ok {
 		return rf(ctx, uuid)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) *repository.Fermentation); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string) *domain.Fermentation); ok {
 		r0 = rf(ctx, uuid)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*repository.Fermentation)
+			r0 = ret.Get(0).(*domain.Fermentation)
 		}
 	}
 
@@ -128,34 +128,34 @@ func (_c *FermentationTrackService_GetFermentationByUUID_Call) Run(run func(ctx 
 	return _c
 }
 
-func (_c *FermentationTrackService_GetFermentationByUUID_Call) Return(_a0 *repository.Fermentation, _a1 error) *FermentationTrackService_GetFermentationByUUID_Call {
+func (_c *FermentationTrackService_GetFermentationByUUID_Call) Return(_a0 *domain.Fermentation, _a1 error) *FermentationTrackService_GetFermentationByUUID_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *FermentationTrackService_GetFermentationByUUID_Call) RunAndReturn(run func(context.Context, string) (*repository.Fermentation, error)) *FermentationTrackService_GetFermentationByUUID_Call {
+func (_c *FermentationTrackService_GetFermentationByUUID_Call) RunAndReturn(run func(context.Context, string) (*domain.Fermentation, error)) *FermentationTrackService_GetFermentationByUUID_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // GetFermentations provides a mock function with given fields: ctx
-func (_m *FermentationTrackService) GetFermentations(ctx context.Context) ([]repository.Fermentation, error) {
+func (_m *FermentationTrackService) GetFermentations(ctx context.Context) ([]domain.Fermentation, error) {
 	ret := _m.Called(ctx)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetFermentations")
 	}
 
-	var r0 []repository.Fermentation
+	var r0 []domain.Fermentation
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context) ([]repository.Fermentation, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context) ([]domain.Fermentation, error)); ok {
 		return rf(ctx)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context) []repository.Fermentation); ok {
+	if rf, ok := ret.Get(0).(func(context.Context) []domain.Fermentation); ok {
 		r0 = rf(ctx)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]repository.Fermentation)
+			r0 = ret.Get(0).([]domain.Fermentation)
 		}
 	}
 
@@ -186,12 +186,60 @@ func (_c *FermentationTrackService_GetFermentations_Call) Run(run func(ctx conte
 	return _c
 }
 
-func (_c *FermentationTrackService_GetFermentations_Call) Return(_a0 []repository.Fermentation, _a1 error) *FermentationTrackService_GetFermentations_Call {
+func (_c *FermentationTrackService_GetFermentations_Call) Return(_a0 []domain.Fermentation, _a1 error) *FermentationTrackService_GetFermentations_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *FermentationTrackService_GetFermentations_Call) RunAndReturn(run func(context.Context) ([]repository.Fermentation, error)) *FermentationTrackService_GetFermentations_Call {
+func (_c *FermentationTrackService_GetFermentations_Call) RunAndReturn(run func(context.Context) ([]domain.Fermentation, error)) *FermentationTrackService_GetFermentations_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpdateFermentation provides a mock function with given fields: ctx, uuid, ferm
+func (_m *FermentationTrackService) UpdateFermentation(ctx context.Context, uuid string, ferm domain.Fermentation) error {
+	ret := _m.Called(ctx, uuid, ferm)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateFermentation")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, domain.Fermentation) error); ok {
+		r0 = rf(ctx, uuid, ferm)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// FermentationTrackService_UpdateFermentation_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateFermentation'
+type FermentationTrackService_UpdateFermentation_Call struct {
+	*mock.Call
+}
+
+// UpdateFermentation is a helper method to define mock.On call
+//   - ctx context.Context
+//   - uuid string
+//   - ferm domain.Fermentation
+func (_e *FermentationTrackService_Expecter) UpdateFermentation(ctx interface{}, uuid interface{}, ferm interface{}) *FermentationTrackService_UpdateFermentation_Call {
+	return &FermentationTrackService_UpdateFermentation_Call{Call: _e.mock.On("UpdateFermentation", ctx, uuid, ferm)}
+}
+
+func (_c *FermentationTrackService_UpdateFermentation_Call) Run(run func(ctx context.Context, uuid string, ferm domain.Fermentation)) *FermentationTrackService_UpdateFermentation_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(domain.Fermentation))
+	})
+	return _c
+}
+
+func (_c *FermentationTrackService_UpdateFermentation_Call) Return(_a0 error) *FermentationTrackService_UpdateFermentation_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *FermentationTrackService_UpdateFermentation_Call) RunAndReturn(run func(context.Context, string, domain.Fermentation) error) *FermentationTrackService_UpdateFermentation_Call {
 	_c.Call.Return(run)
 	return _c
 }

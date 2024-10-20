@@ -53,7 +53,7 @@ func TestGetFermentationHandler(t *testing.T) {
 	mockFermentation := &repository.Fermentation{UUID: uuid1, Nickname: "Test Fermentation"}
 	mockService.EXPECT().GetFermentationByUUID(mock.Anything, uuid1).Return(mockFermentation, nil)
 
-	req, _ := http.NewRequest("GET", "/fermentations/123", nil)
+	req, _ := http.NewRequest("GET", "/v1/fermentations/123", nil)
 	rr := httptest.NewRecorder()
 
 	req = mux.SetURLVars(req, map[string]string{"uuid": uuid1})

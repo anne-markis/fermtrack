@@ -17,3 +17,7 @@ type UserRepository interface {
 	FindByUUID(uuuid string) (*User, error)
 	Create(username string, password string) error
 }
+
+func (u User) IsZero() bool {
+	return u.ID == 0 && u.UUID == ""
+}

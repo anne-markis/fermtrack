@@ -1,9 +1,5 @@
 # FERMTRACK CLI
 
-TODO gif of how it works
-
-TODO tests
-
 ### How to Run
 Start the fermtrack server locally
 ```
@@ -27,4 +23,7 @@ Build and start the CLI
 * Recipe notes get cut off if very long; formatting incorrect
 
 ### Future Work
-* Editing a recipe
+* Editing bottled_at, recipe and tasting notes
+* Creating a fermentation
+* Figuring out a unit testing method
+* Nested models for a cleaner UI experience (https://www.youtube.com/watch?v=uJ2egAkSkjg)

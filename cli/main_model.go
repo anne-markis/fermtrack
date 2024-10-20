@@ -27,7 +27,16 @@ type userInfo struct {
 	uuid         string
 }
 
-type homePage struct {
+type sessionState int
+
+const (
+	appView sessionState = iota
+	entryVeiw
+)
+
+type mainModel struct {
+	state sessionState
+
 	responseViewPort   viewport.Model
 	questionTextArea   textarea.Model
 	thinkingSpinner    spinner.Model
@@ -40,8 +49,8 @@ type homePage struct {
 	err                error
 }
 
-func NewHomePage(fermTracker client.Fermtracker) homePage {
-	return homePage{
+func NewMainModel(fermTracker client.Fermtracker) mainModel {
+	return mainModel{
 		questionTextArea:   questionTextArea(),
 		responseViewPort:   chatViewport(),
 		thinkingSpinner:    thinkingSpinner(),
@@ -54,7 +63,7 @@ func NewHomePage(fermTracker client.Fermtracker) homePage {
 
 func StartCLI(ctx context.Context, fermTracker client.Fermtracker) error {
 	p := tea.NewProgram(
-		NewHomePage(fermTracker),
+		NewMainModel(fermTracker),
 	)
 	if _, err := p.Run(); err != nil {
 		return err
@@ -62,23 +71,33 @@ func StartCLI(ctx context.Context, fermTracker client.Fermtracker) error {
 	return nil
 }
 
-func (h homePage) Init() tea.Cmd {
+func (h mainModel) Init() tea.Cmd {
 	return tea.Batch(textarea.Blink, h.thinkingSpinner.Tick)
 }
 
-func (h homePage) View() string {
+func (h mainModel) View() string {
 	var spinner string
 	if h.isThinking {
 		spinner = h.thinkingSpinner.View()
 	}
+
 	title := FermTrack_ANSIShadow()
-	view := title + "\n" +
+
+	defaultView := title + "\n" +
 		lipgloss.JoinHorizontal(lipgloss.Top, h.questionTextArea.View(), spinner, h.responseViewPort.View(), h.fermentationsTable.View()) +
 		h.helpView()
-	return view
+
+	// TODO nested models to vetter control flow/views
+	switch h.state {
+	case appView:
+		return defaultView
+	case entryVeiw:
+		// TODO login screen
+	}
+	return defaultView
 }
 
-func (h homePage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var (
 		tiCmd      tea.Cmd
 		vpCmd      tea.Cmd
@@ -89,9 +108,9 @@ func (h homePage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	cmds := []tea.Cmd{}
 
-	h.questionTextArea, tiCmd = h.questionTextArea.Update(msg)
-	h.responseViewPort, vpCmd = h.responseViewPort.Update(msg)
-	h.thinkingSpinner, spinnerCmd = h.thinkingSpinner.Update(msg)
+	m.questionTextArea, tiCmd = m.questionTextArea.Update(msg)
+	m.responseViewPort, vpCmd = m.responseViewPort.Update(msg)
+	m.thinkingSpinner, spinnerCmd = m.thinkingSpinner.Update(msg)
 
 	cmds = append(cmds, tiCmd, vpCmd, aiCmd, spinnerCmd)
 
@@ -99,17 +118,17 @@ func (h homePage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.Type {
 		case tea.KeyCtrlC:
-			return h, tea.Quit
+			return m, tea.Quit
 		case tea.KeyEsc:
-			if h.fermentationsTable.Focused() {
-				h.fermentationsTable.Blur()
-				h.additionalHelp = "esc: select table"
+			if m.fermentationsTable.Focused() {
+				m.fermentationsTable.Blur()
+				m.additionalHelp = "esc: select table"
 			} else {
-				h.fermentationsTable.Focus()
-				h.additionalHelp = "esc: unselect table"
+				m.fermentationsTable.Focus()
+				m.additionalHelp = "esc: unselect table"
 			}
 		case tea.KeyEnter:
-			input := h.questionTextArea.Value()
+			input := m.questionTextArea.Value()
 
 			systemCmd, err := GetCommand(input)
 			if err != nil {
@@ -118,101 +137,119 @@ func (h homePage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			switch systemCmd.Command {
 			case AskWineWizard:
-				cmds = append(cmds, h.askQuestion(input, h.userInfo.encodedToken), setThinking(true)) // TOKEN
+				cmds = append(cmds, m.askQuestion(input), setThinking(true))
 			case ListFermentations:
-				cmds = append(cmds, h.listFermentations(), setThinking(true))
+				cmds = append(cmds, m.listFermentations(), setThinking(true))
 			case ClearList:
-				h.responseViewPort.SetContent(responderStyle.Render(fmt.Sprintf("🍷🧙:")))
-				h.fermentationsTable = fermentationsTable([]client.Fermentation{})
+				m.responseViewPort.SetContent(responderStyle.Render(fmt.Sprintf("🍷🧙:")))
+				m.fermentationsTable = fermentationsTable([]client.Fermentation{})
 			case ViewFermentation:
-				if h.fermentationsTable.SelectedRow() != nil {
-					uuid := h.fermentationsTable.SelectedRow()[0] // uuid col is first col
-					cmds = append(cmds, h.viewFermentation(uuid), setThinking(true))
+				if m.fermentationsTable.SelectedRow() != nil {
+					uuid := m.fermentationsTable.SelectedRow()[0] // uuid col is first col
+					cmds = append(cmds, m.viewFermentation(uuid), setThinking(true))
 				} else {
-					h.responseViewPort.SetContent(responderStyle.Render(fmt.Sprintf("🍷🧙: Try using 'list' and selecting a row first!")))
+					m.responseViewPort.SetContent(responderStyle.Render(fmt.Sprintf("🍷🧙: Try using 'list' and selecting a row first!")))
 				}
 			case EditFermentation:
-				h.responseViewPort.SetContent(responderStyle.Render(fmt.Sprintf("🍷🧙: Unimplemented! %s", BubblyGlass())))
-				h.responseViewPort.GotoTop()
+				if m.fermentationsTable.SelectedRow() != nil {
+					// uuid := h.fermentationsTable.SelectedRow()[0] // uuid col is first col // TODO use https://github.com/charmbracelet/huh
+					// cmds = append(cmds, h.startEditFermentation(uuid), setThinking(true))
+					m.responseViewPort.SetContent(responderStyle.Render(fmt.Sprintf("🍷🧙: Unimplemented! %s", BubblyGlass())))
+					m.responseViewPort.GotoTop()
+				} else {
+					m.responseViewPort.SetContent(responderStyle.Render(fmt.Sprintf("🍷🧙: Try using 'list' and selecting a row first!")))
+				}
 			case Login:
+				var user string
+				var pass string
 				userInput := strings.Split(input, " ")
-				user := userInput[1]
-				pass := userInput[2]
-				cmds = append(cmds, h.attemptLogin(user, pass), setThinking(true))
+				if len(userInput) == 1 {
+					// easy pass for meee
+					user = "cooluser"
+					pass = "cool123"
+				} else {
+					user = userInput[1]
+					pass = userInput[2]
+				}
+
+				cmds = append(cmds, m.attemptLogin(user, pass), setThinking(true))
 			default:
-				h.responseViewPort.SetContent(responderStyle.Render(systemCmd.Extra)) // help text
+				m.responseViewPort.SetContent(responderStyle.Render(systemCmd.Extra)) // help text
 			}
 
-			h.questionTextArea.Reset()
+			m.questionTextArea.Reset()
 		}
 	case someAnswer:
-		h.responseViewPort.SetContent(responderStyle.Render(fmt.Sprintf("🍷🧙: %v", msg)))
-		h.questionTextArea.Reset()
-		h.responseViewPort.GotoTop()
+		m.responseViewPort.SetContent(responderStyle.Render(fmt.Sprintf("🍷🧙: %v", msg)))
+		m.questionTextArea.Reset()
+		m.responseViewPort.GotoTop()
 		cmds = append(cmds, setThinking(false))
 	case qIsThinking:
 		if msg {
-			h.isThinking = true
-			h.responseViewPort.SetContent(responderStyle.Render(""))
+			m.isThinking = true
+			m.responseViewPort.SetContent(responderStyle.Render(""))
 		} else {
-			h.isThinking = false
+			m.isThinking = false
 		}
 	case fermentationList:
-		h.questionTextArea.Reset()
+		m.questionTextArea.Reset()
 
-		h.fermentationsTable = fermentationsTable(msg.ferms)
-		h.fermentationsTable.Focus()
+		m.fermentationsTable = fermentationsTable(msg.ferms)
+		m.fermentationsTable.Focus()
 
-		h.responseViewPort.SetContent(responderStyle.Render("🍷🧙: ok"))
-		h.responseViewPort.GotoTop()
+		m.responseViewPort.SetContent(responderStyle.Render("🍷🧙: ok"))
+		m.responseViewPort.GotoTop()
 		cmds = append(cmds, setThinking(false))
 	case fermentationView:
-		h.responseViewPort.SetContent(responderStyle.Render(msg.ToString()))
-		h.responseViewPort.GotoTop()
+		m.responseViewPort.SetContent(responderStyle.Render(msg.ToString()))
+		m.responseViewPort.GotoTop()
+		cmds = append(cmds, setThinking(false))
+	case fermentationStartEdit:
+		// TODO
 		cmds = append(cmds, setThinking(false))
 	case userLogin:
-		h.userInfo = userInfo{
+		m.userInfo = userInfo{
 			encodedToken: msg.Token,
 			username:     msg.Username,
 			uuid:         msg.UUID,
 		}
 
-		h.ctx = context.WithValue(h.ctx, client.ContextKeyJWT, h.userInfo.encodedToken)
+		m.ctx = context.WithValue(m.ctx, client.ContextKeyJWT, m.userInfo.encodedToken)
 
-		h.responseViewPort.SetContent(responderStyle.Render("🍷🧙: Login successful! Ask me anything or try `help`"))
+		m.responseViewPort.SetContent(responderStyle.Render("🍷🧙: Login successful! Ask me anything or try `help`"))
 		cmds = append(cmds, setThinking(false))
 	case errMsg:
-		h.err = msg
-		return h, nil
+		m.err = msg
+		return m, nil
 	default:
 		var spinnerCmd tea.Cmd
-		h.thinkingSpinner, spinnerCmd = h.thinkingSpinner.Update(msg)
+		m.thinkingSpinner, spinnerCmd = m.thinkingSpinner.Update(msg)
 		cmds = append(cmds, spinnerCmd)
 	}
 
-	h.fermentationsTable, tableCmd = h.fermentationsTable.Update(msg)
+	m.fermentationsTable, tableCmd = m.fermentationsTable.Update(msg)
 	cmds = append(cmds, tableCmd)
 
-	if h.userInfo.encodedToken == "" {
-		h.questionTextArea.Placeholder = "login username password"
+	if m.userInfo.encodedToken == "" {
+		m.questionTextArea.Placeholder = "login username password" // TODO: hit enter to bypass with default username/pass for ease of use
 	} else {
-		h.questionTextArea.Placeholder = "Ask away..."
+		m.questionTextArea.Placeholder = "Ask away..."
 	}
 
-	return h, tea.Batch(cmds...)
+	return m, tea.Batch(cmds...)
 }
 
-func (h homePage) helpView() string {
+func (m mainModel) helpView() string {
 	helpText := "\n\n help: Get commands • ↑/↓: scroll answers • ctrl+c: Quit"
-	if h.additionalHelp != "" {
-		helpText = helpText + " • " + h.additionalHelp
+	if m.additionalHelp != "" {
+		helpText = helpText + " • " + m.additionalHelp
 	}
 
 	return helpStyle(helpText)
 }
 
 func chatViewport() viewport.Model {
-	viewPort := viewport.New(60, height)
+	viewPort := viewport.New(65, height)
 	viewPort.SetContent(`🍷🧙 Ask me, the wine wizard, anything you like.`)
 	return viewPort
 }
@@ -290,9 +327,9 @@ func fwdError(err error) tea.Cmd {
 
 type someAnswer string
 
-func (h homePage) askQuestion(q string, token string) tea.Cmd {
+func (m mainModel) askQuestion(q string) tea.Cmd {
 	return func() tea.Msg {
-		answer, err := h.fermTracker.AskQuestion(h.ctx, &client.FermentationQuestion{Question: q})
+		answer, err := m.fermTracker.AskQuestion(m.ctx, &client.FermentationQuestion{Question: q})
 		if err != nil {
 			return someAnswer(err.Error())
 		}
@@ -302,9 +339,9 @@ func (h homePage) askQuestion(q string, token string) tea.Cmd {
 
 type fermentationList struct{ ferms []client.Fermentation }
 
-func (h homePage) listFermentations() tea.Cmd {
+func (m mainModel) listFermentations() tea.Cmd {
 	return func() tea.Msg {
-		ferms, err := h.fermTracker.ListFermentations(h.ctx)
+		ferms, err := m.fermTracker.ListFermentations(m.ctx)
 		if err != nil {
 			return someAnswer(err.Error())
 		}
@@ -314,9 +351,9 @@ func (h homePage) listFermentations() tea.Cmd {
 
 type fermentationView struct{ *client.Fermentation }
 
-func (h homePage) viewFermentation(uuid string) tea.Cmd {
+func (m mainModel) viewFermentation(uuid string) tea.Cmd {
 	return func() tea.Msg {
-		ferm, err := h.fermTracker.GetFermentation(h.ctx, uuid)
+		ferm, err := m.fermTracker.GetFermentation(m.ctx, uuid)
 		if err != nil {
 			return someAnswer(err.Error())
 		}
@@ -324,11 +361,23 @@ func (h homePage) viewFermentation(uuid string) tea.Cmd {
 	}
 }
 
+type fermentationStartEdit struct{ *client.Fermentation }
+
+func (m mainModel) startEditFermentation(uuid string) tea.Cmd { // TODO
+	return func() tea.Msg {
+		ferm, err := m.fermTracker.GetFermentation(m.ctx, uuid)
+		if err != nil {
+			return someAnswer(err.Error())
+		}
+		return fermentationStartEdit{ferm}
+	}
+}
+
 type userLogin struct{ *client.LoginResponse }
 
-func (h homePage) attemptLogin(username, password string) tea.Cmd {
+func (m mainModel) attemptLogin(username, password string) tea.Cmd {
 	return func() tea.Msg {
-		resp, err := h.fermTracker.Login(h.ctx, username, password)
+		resp, err := m.fermTracker.Login(m.ctx, username, password)
 		if err != nil {
 			return someAnswer(err.Error())
 		}

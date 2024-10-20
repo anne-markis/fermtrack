@@ -26,3 +26,4 @@ Build and start the CLI
 * Editing bottled_at, recipe and tasting notes
 * Creating a fermentation
 * Figuring out a unit testing method
+* Nested models for a cleaner UI experience (https://www.youtube.com/watch?v=uJ2egAkSkjg)
